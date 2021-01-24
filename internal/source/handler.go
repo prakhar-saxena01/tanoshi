@@ -20,6 +20,10 @@ func (h *Handler) GetSourceLatestUpdates(name string, page int) ([]*Manga, error
 	return h.sm.GetLatestUpdates(name, page)
 }
 
+func (h *Handler) SearchManga(name string, filter map[string]string) ([]*Manga, error) {
+	return h.sm.SearchManga(name, filter)
+}
+
 func (h *Handler) GetMangaDetails(id uint, includeChapter bool) (*Manga, error) {
 	return h.sm.GetMangaDetails(id, includeChapter)
 }
@@ -30,4 +34,8 @@ func (h *Handler) GetChapters(mangaID uint) ([]*Chapter, error) {
 
 func (h *Handler) GetChapter(id uint) (*Chapter, error) {
 	return h.sm.GetChapter(id)
+}
+
+func (h *Handler) Login(name, username, password, twoFactor string, remember bool) error {
+	return h.sm.Login(name, username, password, twoFactor, remember)
 }

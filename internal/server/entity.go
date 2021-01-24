@@ -7,3 +7,8 @@ type GetLatestUpdatesRequest struct {
 type GetMangaDetailsRequest struct {
 	IncludeChapter bool
 }
+
+type LoginRequest struct {
+	Username, Password, TwoFactor string
+	Remember                      bool
+}

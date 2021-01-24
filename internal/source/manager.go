@@ -70,6 +70,20 @@ func (sm *Manager) GetLatestUpdates(name string, page int) ([]*Manga, error) {
 	return mangas, nil
 }
 
+func (sm *Manager) SearchManga(name string, filter Filters) ([]*Manga, error) {
+	mangas, err := sm.Get(name).FetchManga(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	mangas, err = sm.repo.SaveMangaInBatch(mangas)
+	if err != nil {
+		return nil, err
+	}
+
+	return mangas, nil
+}
+
 func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error) {
 	manga, err := sm.repo.GetMangaByID(id, includeChapter)
 	if err != nil {
@@ -148,4 +162,11 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 		return nil, err
 	}
 	return chapter, err
+}
+
+func (sm *Manager) Login(name, username, password, twoFactor string, remember bool) error {
+	if err := sm.Get(name).Login(username, password, twoFactor, remember); err != nil {
+		return err
+	}
+	return nil
 }

@@ -29,9 +29,14 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, sourceList)
 	})
 	api.GET("/source/:name", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		filters := c.QueryMap("filters")
+
+		mangas, err := s.sourceHandler.SearchManga(c.Param("name"), filters)
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.JSON(200, mangas)
 	})
 	api.GET("/source/:name/latest", func(c *gin.Context) {
 		page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
@@ -44,12 +49,26 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, latestManga)
 	})
 	api.GET("/source/:name/detail", func(c *gin.Context) {
-		source, err := s.sourceHandler.GetSourceDetail(c.GetString("name"))
+		source, err := s.sourceHandler.GetSourceDetail(c.Param("name"))
 		if err != nil {
 			c.AbortWithError(500, err)
 			return
 		}
 		c.JSON(200, source)
+	})
+	api.POST("/source/:name/login", func(c *gin.Context) {
+		var req LoginRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.AbortWithError(400, err)
+			return
+		}
+
+		err := s.sourceHandler.Login(c.Param("name"), req.Username, req.Password, req.TwoFactor, req.Remember)
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.Status(200)
 	})
 	api.GET("/manga/:id", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)

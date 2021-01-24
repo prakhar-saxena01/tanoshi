@@ -362,6 +362,7 @@ func (s *Source) fetchManga(body *string) ([]*Manga, error) {
 		tbl.ForEach(func(_, v lua.LValue) {
 			if ud, ok := v.(*lua.LUserData); ok {
 				if m, ok := ud.Value.(*Manga); ok {
+					m.Source = s.Name
 					manga = append(manga, m)
 				}
 			}
