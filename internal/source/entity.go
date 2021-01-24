@@ -50,6 +50,7 @@ const luaChapterTypeName = "Chapter"
 type Page struct {
 	gorm.Model `luar:"-"`
 	ChapterID  uint `luar:"-"`
+	Rank       int
 	URL        string
 }
 

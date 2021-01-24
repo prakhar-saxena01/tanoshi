@@ -1,6 +1,9 @@
 package source
 
 import (
+	"fmt"
+	"strings"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -23,9 +26,27 @@ func (r *Repository) SaveManga(m *Manga) (*Manga, error) {
 }
 
 func (r *Repository) SaveMangaInBatch(mangas []*Manga) ([]*Manga, error) {
-	err := r.db.Clauses(clause.OnConflict{DoNothing: true}).Create(mangas).Error
-	if err != nil {
+	db := r.db.Clauses(clause.OnConflict{DoNothing: true}).Create(mangas)
+	if err := db.Error; err != nil {
 		return nil, err
+	}
+
+	if len(mangas) == 0 {
+		return mangas, nil
+	}
+
+	if db.RowsAffected != int64(len(mangas)) {
+		sqlString := "SELECT *, 0 SortOrder FROM mangas WHERE source = ? AND path = ? UNION ALL \n"
+		values := []interface{}{mangas[0].Source, mangas[0].Path}
+		for i := 1; i < len(mangas); i++ {
+			sqlString += fmt.Sprintf("SELECT *, %d FROM mangas WHERE source = ? AND path = ? UNION ALL \n", i)
+			values = append(values, mangas[i].Source, mangas[i].Path)
+		}
+		sqlString = strings.TrimSuffix(sqlString, "UNION ALL \n")
+		sqlString += "ORDER BY SortOrder"
+		if err := r.db.Raw(sqlString, values...).Scan(&mangas).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	return mangas, nil
