@@ -17,17 +17,20 @@ import (
 type Source struct {
 	Name       string
 	URL        string
+	path       string
 	l          *lua.LState
 	httpClient *http.Client
-	header     http.Header
+	cfg        *Config
 }
 
 // LoadSourceFromPath load source from specified path
 func LoadSourceFromPath(path string) (*Source, error) {
-	s := newSource()
-
-	s.httpClient = &http.Client{}
-	s.header = make(http.Header)
+	s := &Source{
+		path:       path,
+		l:          lua.NewState(),
+		httpClient: &http.Client{},
+		cfg:        LoadConfig(path),
+	}
 
 	s.l.PreloadModule("scraper", scraper.NewHTMLScraper().Loader)
 	s.l.PreloadModule("helper", helper.NewHelper().Loader)
@@ -53,8 +56,8 @@ func LoadSourceFromPath(path string) (*Source, error) {
 	return s, nil
 }
 
-func newSource() *Source {
-	return &Source{l: lua.NewState()}
+func (s *Source) GetConfig() *Config {
+	return s.cfg
 }
 
 func (s *Source) getName() error {
@@ -306,9 +309,9 @@ func (s *Source) login(resp *SourceResponse) error {
 	if tbl, ok := lv.(*lua.LTable); ok {
 		tbl.ForEach(func(k, v lua.LValue) {
 			if values, ok := v.(*lua.LTable); ok {
-				s.header.Del(k.String())
+				s.cfg.Header.Del(k.String())
 				values.ForEach(func(i, w lua.LValue) {
-					s.header.Add(k.String(), w.String())
+					s.cfg.Header.Add(k.String(), w.String())
 				})
 			}
 		})
@@ -329,6 +332,8 @@ func (s *Source) Login(username, password, twoFactor string, remember bool) erro
 	if err != nil {
 		return err
 	}
+
+	s.cfg.Save()
 
 	return nil
 }
@@ -387,8 +392,8 @@ func (s *Source) FetchManga(filter Filters) ([]*Manga, error) {
 
 func (s *Source) headerBuilder() *http.Header {
 	var header http.Header
-	if s.header != nil {
-		header = s.header.Clone()
+	if s.cfg.Header != nil {
+		header = s.cfg.Header.Clone()
 	} else {
 		header = make(http.Header)
 	}

@@ -1,12 +1,49 @@
 package source
 
 import (
+	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	lua "github.com/yuin/gopher-lua"
+	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )
+
+type Config struct {
+	path   string      `yaml:"-"`
+	Header http.Header `yaml:"header"`
+}
+
+func LoadConfig(path string) *Config {
+	path = strings.TrimRight(path, ".lua") + ".yml"
+
+	cfg := Config{
+		path:   path,
+		Header: make(http.Header),
+	}
+	f, err := ioutil.ReadFile(path)
+	if err != nil {
+		return &cfg
+	}
+
+	yaml.Unmarshal(f, &cfg)
+	return &cfg
+}
+
+func (c *Config) Save() error {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	f, _ := os.Create(c.path)
+	defer f.Close()
+
+	_, err = f.Write(data)
+	return err
+}
 
 type Manga struct {
 	gorm.Model  `luar:"-"`

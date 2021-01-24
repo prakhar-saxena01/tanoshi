@@ -168,5 +168,6 @@ func (sm *Manager) Login(name, username, password, twoFactor string, remember bo
 	if err := sm.Get(name).Login(username, password, twoFactor, remember); err != nil {
 		return err
 	}
+
 	return nil
 }
