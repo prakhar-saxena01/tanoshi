@@ -16,6 +16,31 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db}
 }
 
+func (r *Repository) GetSources() (map[string]*Source, error) {
+	rows, err := r.db.Model(&Source{}).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sources := make(map[string]*Source)
+	for rows.Next() {
+		var source Source
+		err := r.db.ScanRows(rows, &source)
+		if err != nil {
+			return nil, err
+		}
+
+		sources[strings.ToLower(source.Name)] = &source
+	}
+
+	return sources, nil
+}
+
+func (r *Repository) SaveSource(s *Source) error {
+	return r.db.Save(s).Error
+}
+
 func (r *Repository) SaveManga(m *Manga) (*Manga, error) {
 	err := r.db.Save(m).Error
 	if err != nil {
@@ -113,4 +138,12 @@ func (r *Repository) SaveChapter(c *Chapter) (*Chapter, error) {
 	}
 
 	return c, nil
+}
+
+func (r *Repository) SaveFavorite(mangaID uint) error {
+	return r.db.Model(&Manga{}).Update("is_favorite", true).Error
+}
+
+func (r *Repository) DeleteFavorite(mangaID uint) error {
+	return r.db.Model(&Manga{}).Update("is_favorite", false).Error
 }

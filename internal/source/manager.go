@@ -6,43 +6,83 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
+	"net/http"
+	"strings"
 )
+
+var RepositoryURL = "https://faldez.github.io/kumo-extensions"
 
 type Manager struct {
 	repo    *Repository
 	sources map[string]*Source
 }
 
-func NewManager(path string, repo *Repository) (*Manager, error) {
-	sourceJsonFile, err := os.Open(path + "/source.json")
+func NewManager(repo *Repository) (*Manager, error) {
+	sources, err := repo.GetSources()
 	if err != nil {
 		return nil, err
 	}
 
-	sourceJsonBytes, err := ioutil.ReadAll(sourceJsonFile)
-	if err != nil {
-		return nil, err
-	}
-
-	var index []Source
-	err = json.Unmarshal(sourceJsonBytes, &index)
-	if err != nil {
-		return nil, err
-	}
-
-	sources := make(map[string]*Source)
-	for _, s := range index {
-		source, err := LoadSourceFromPath(fmt.Sprintf("%s/source/%s/%s.lua", path, s.Name, s.Name))
-		if err != nil {
+	for name := range sources {
+		if err := sources[strings.ToLower(name)].Initialize(); err != nil {
 			log.Println(err.Error())
 			continue
 		}
-
-		sources[source.Name] = source
 	}
 
 	return &Manager{repo, sources}, nil
+}
+
+func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/source.json", RepositoryURL))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var sources []*Source
+	err = json.NewDecoder(resp.Body).Decode(&sources)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range sources {
+		_, sources[i].Installed = sm.sources[strings.ToLower(sources[i].Name)]
+	}
+
+	return sources, nil
+}
+
+func (sm *Manager) InstallSource(name string) error {
+	if _, installed := sm.sources[strings.ToLower(name)]; installed {
+		return errors.New("source installed")
+	}
+	resp, err := http.Get(fmt.Sprintf("%s/source/%s/%s.lua", RepositoryURL, name, name))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	source := Source{
+		Name: name,
+	}
+	source.Contents, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = sm.repo.SaveSource(&source)
+	if err != nil {
+		return err
+	}
+
+	sm.sources[strings.ToLower(name)] = &source
+	err = sm.sources[strings.ToLower(name)].Initialize()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (sm *Manager) List() []*Source {
@@ -169,5 +209,17 @@ func (sm *Manager) Login(name, username, password, twoFactor string, remember bo
 		return err
 	}
 
+	if err := sm.repo.SaveSource(sm.Get(name)); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (sm *Manager) SaveFavorite(mangaID uint) error {
+	return sm.repo.SaveFavorite(mangaID)
+}
+
+func (sm *Manager) DeleteFavorite(mangaID uint) error {
+	return sm.repo.DeleteFavorite(mangaID)
 }

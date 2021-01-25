@@ -8,6 +8,14 @@ func NewHandler(sm *Manager) *Handler {
 	return &Handler{sm}
 }
 
+func (h *Handler) GetSourcesFromRemote() ([]*Source, error) {
+	return h.sm.GetSourcesFromRemote()
+}
+
+func (h *Handler) InstallSource(name string) error {
+	return h.sm.InstallSource(name)
+}
+
 func (h *Handler) GetSourceList() ([]*Source, error) {
 	return h.sm.List(), nil
 }
@@ -38,4 +46,12 @@ func (h *Handler) GetChapter(id uint) (*Chapter, error) {
 
 func (h *Handler) Login(name, username, password, twoFactor string, remember bool) error {
 	return h.sm.Login(name, username, password, twoFactor, remember)
+}
+
+func (h *Handler) SaveFavorite(mangaID uint) error {
+	return h.sm.SaveFavorite(mangaID)
+}
+
+func (h *Handler) DeleteFavorite(mangaID uint) error {
+	return h.sm.DeleteFavorite(mangaID)
 }

@@ -10,27 +10,27 @@ import (
 	"github.com/faldez/tanoshi/internal/lua/helper"
 	"github.com/faldez/tanoshi/internal/lua/scraper"
 	lua "github.com/yuin/gopher-lua"
+	"gorm.io/gorm"
 	luajson "layeh.com/gopher-json"
 	luar "layeh.com/gopher-luar"
 )
 
 type Source struct {
-	Name       string
-	URL        string
-	path       string
+	gorm.Model
+	Name       string `gorm:"unique_index"`
+	Contents   []byte `json:"-"`
+	Config     Config `json:"-"`
+	Installed  bool   `gorm:"-"`
+	Version    string `gorm:"-"`
+	URL        string `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
-	cfg        *Config
 }
 
-// LoadSourceFromPath load source from specified path
-func LoadSourceFromPath(path string) (*Source, error) {
-	s := &Source{
-		path:       path,
-		l:          lua.NewState(),
-		httpClient: &http.Client{},
-		cfg:        LoadConfig(path),
-	}
+// Initialize initialize source from specified path
+func (s *Source) Initialize() error {
+	s.l = lua.NewState()
+	s.httpClient = &http.Client{}
 
 	s.l.PreloadModule("scraper", scraper.NewHTMLScraper().Loader)
 	s.l.PreloadModule("helper", helper.NewHelper().Loader)
@@ -40,24 +40,20 @@ func LoadSourceFromPath(path string) (*Source, error) {
 	s.l.SetGlobal(luaChapterTypeName, luar.NewType(s.l, Chapter{}))
 	s.l.SetGlobal(luaPageTypeName, luar.NewType(s.l, Page{}))
 
-	if err := s.l.DoFile(path); err != nil {
-		return nil, err
+	if err := s.l.DoString(string(s.Contents)); err != nil {
+		return err
 	}
 
 	if err := s.getName(); err != nil {
 		s.l.Close()
-		return nil, err
+		return err
 	}
 	if err := s.getBaseURL(); err != nil {
 		s.l.Close()
-		return nil, err
+		return err
 	}
 
-	return s, nil
-}
-
-func (s *Source) GetConfig() *Config {
-	return s.cfg
+	return nil
 }
 
 func (s *Source) getName() error {
@@ -309,9 +305,9 @@ func (s *Source) login(resp *SourceResponse) error {
 	if tbl, ok := lv.(*lua.LTable); ok {
 		tbl.ForEach(func(k, v lua.LValue) {
 			if values, ok := v.(*lua.LTable); ok {
-				s.cfg.Header.Del(k.String())
+				s.Config.Header.Del(k.String())
 				values.ForEach(func(i, w lua.LValue) {
-					s.cfg.Header.Add(k.String(), w.String())
+					s.Config.Header.Add(k.String(), w.String())
 				})
 			}
 		})
@@ -332,8 +328,6 @@ func (s *Source) Login(username, password, twoFactor string, remember bool) erro
 	if err != nil {
 		return err
 	}
-
-	s.cfg.Save()
 
 	return nil
 }
@@ -392,8 +386,8 @@ func (s *Source) FetchManga(filter Filters) ([]*Manga, error) {
 
 func (s *Source) headerBuilder() *http.Header {
 	var header http.Header
-	if s.cfg.Header != nil {
-		header = s.cfg.Header.Clone()
+	if s.Config.Header != nil {
+		header = s.Config.Header.Clone()
 	} else {
 		header = make(http.Header)
 	}

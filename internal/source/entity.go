@@ -1,48 +1,42 @@
 package source
 
 import (
-	"io/ioutil"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	lua "github.com/yuin/gopher-lua"
-	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )
 
 type Config struct {
-	path   string      `yaml:"-"`
-	Header http.Header `yaml:"header"`
+	Header http.Header
 }
 
-func LoadConfig(path string) *Config {
-	path = strings.TrimRight(path, ".lua") + ".yml"
-
-	cfg := Config{
-		path:   path,
-		Header: make(http.Header),
-	}
-	f, err := ioutil.ReadFile(path)
-	if err != nil {
-		return &cfg
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (c *Config) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal json value:", value))
 	}
 
-	yaml.Unmarshal(f, &cfg)
-	return &cfg
-}
-
-func (c *Config) Save() error {
-	data, err := yaml.Marshal(c)
+	*c = Config{}
+	err := json.Unmarshal(bytes, c)
 	if err != nil {
 		return err
 	}
-	f, _ := os.Create(c.path)
-	defer f.Close()
+	if c.Header == nil {
+		c.Header = make(http.Header)
+	}
+	return nil
+}
 
-	_, err = f.Write(data)
-	return err
+// Value return json value, implement driver.Valuer interface
+func (c Config) Value() (driver.Value, error) {
+	return json.Marshal(c)
 }
 
 type Manga struct {
@@ -55,8 +49,8 @@ type Manga struct {
 	Authors     string
 	Status      string
 	Genres      string
-	IsFavorite  bool `luar:"-"`
 	Chapters    []Chapter
+	IsFavorite  bool
 }
 
 const luaMangaTypeName string = "Manga"

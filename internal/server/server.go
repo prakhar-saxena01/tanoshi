@@ -21,12 +21,33 @@ func (s *Server) RegisterHandler() {
 	api := s.r.Group("/api")
 
 	api.GET("/source", func(c *gin.Context) {
-		sourceList, err := s.sourceHandler.GetSourceList()
+		var (
+			sourceList []*source.Source
+			err        error
+		)
+		if _, installed := c.GetQuery("installed"); !installed {
+			sourceList, err = s.sourceHandler.GetSourcesFromRemote()
+			if err != nil {
+				c.AbortWithError(500, err)
+				return
+			}
+		} else {
+			sourceList, err = s.sourceHandler.GetSourceList()
+			if err != nil {
+				c.AbortWithError(500, err)
+				return
+			}
+		}
+
+		c.JSON(200, sourceList)
+	})
+	api.POST("/source/:name/install", func(c *gin.Context) {
+		err := s.sourceHandler.InstallSource(c.Param("name"))
 		if err != nil {
 			c.AbortWithError(500, err)
 			return
 		}
-		c.JSON(200, sourceList)
+		c.Status(200)
 	})
 	api.GET("/source/:name", func(c *gin.Context) {
 		filters := c.QueryMap("filters")
@@ -89,6 +110,24 @@ func (s *Server) RegisterHandler() {
 			return
 		}
 		c.JSON(200, chapters)
+	})
+	api.PUT("/manga/:id/favorite", func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		err := s.sourceHandler.SaveFavorite(uint(id))
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.Status(200)
+	})
+	api.DELETE("/manga/:id/favorite", func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		err := s.sourceHandler.DeleteFavorite(uint(id))
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.Status(200)
 	})
 	api.GET("/chapter/:id", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
