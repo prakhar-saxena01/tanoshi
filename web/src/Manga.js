@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from '@reach/router';
+import { Link, navigate } from '@reach/router';
 import Topbar from './common/Topbar';
+import Navbar from './common/Navbar';
 
 function Manga(props) {
     const [manga, setManga] = React.useState();
@@ -13,22 +14,25 @@ function Manga(props) {
             }).catch((e) => {
                 console.log(e);
             });
-    }, manga)
+    }, [manga])
 
     if (!manga) {
         return <div></div>
     }
 
     return (
-        <div className={"main w-full mx-auto px-2 flex flex-col lg:flex-row"}>
+        <div className={"main w-full mx-auto px-2 flex flex-col h-auto"}>
             <Topbar>
-                <button>Filter</button>
-                <span className={"text-gray-300"}>{manga.Title}</span>
-                <button>Search</button>
+                <button onClick={() => navigate(-1)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <span className={"text-gray-300 truncate"}>{manga.Title}</span>
+                <span></span>
             </Topbar>
-            <div className={"hidden lg:block w-0 lg:w-1/3"}></div>
-            <div className={"w-full lg:w-1/3 h-screen static lg:fixed"}>
-                <div id={"detail"} className={"flex flex-col justify-center bg-gray-50 dark:bg-gray-800 p-2 mb-2 rounded"}>
+            <div className={"w-full lg:pl-48"}>
+                <div id={"detail"} className={"flex flex-col justify-center bg-white dark:bg-gray-800 p-2 mb-2 rounded shadow"}>
                     <div className={"flex"}>
                         <div className={"pb-7/6 mr-2"}>
                             <img className={"w-32 rounded object-cover"} alt={manga.Title} src={manga.CoverURL}></img>
@@ -41,7 +45,7 @@ function Manga(props) {
                         </div>
                     </div>
                 </div>
-                <div id={"description"} className={"flex flex-col justify-center bg-gray-5 dark:bg-gray-800 p-2 mb-2 rounded"}>
+                <div id={"description"} className={"flex flex-col justify-center bg-white dark:bg-gray-800 p-2 mb-2 rounded shadow"}>
                     <div className={"flex"}>
                         <button className={"rounded p-2 border text-gray-900 dark:text-gray-50"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
@@ -50,7 +54,7 @@ function Manga(props) {
                         </button>
                     </div>
                     <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Description</span>
-                    <p className={"break-normal md:text-base sm:text-xs text-gray-900 dark:text-gray-300 text-left"}>{manga.Description}</p>
+                    <p className={"md:text-base sm:text-xs text-gray-900 dark:text-gray-300 text-left break-words"}>{manga.Description}</p>
                     <div className={"w-full flex flex-wrap"}>
                         {manga.Genres.split(',').map((genre, index) => (
                             <span key={index} className={"md:text-base sm:text-xs text-gray-900 dark:text-gray-300 mr-2 rounded-full border border-gray-900 dark:border-gray-300 px-2 mt-2"}>
@@ -60,10 +64,10 @@ function Manga(props) {
                     </div>
                 </div>
             </div>
-            <div className={"w-full lg:w-2/3 h-screen pb-safe-bottom-scroll pl-0 lg:pl-4"}>
-                <div id={"chapters"} className={"flex justify-center bg-gray-50 dark:bg-gray-800 p-2 rounded"}>
-                    <div className={"flex flex-col w-full divide-y-2 dark:divide-gray-700 divide-gray-300"}>
-                        <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300"}>Chapters</span>
+            <div className={"w-full lg:pl-48 pb-safe-bottom-scroll"}>
+                <div id={"chapters"} className={"flex justify-center bg-white dark:bg-gray-800 p-2 rounded shadow"}>
+                    <div className={"flex flex-col w-full divide-y-2 dark:divide-gray-900 divide-gray-100"}>
+                        <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Chapters</span>
                         {manga.Chapters.map(ch => (
                             <Link key={ch.ID} className={"flex inline-flex hover:bg-gray-200 dark:hover:bg-gray-700 p-2"} to={`/chapter/${ch.ID}`}>
                                 <div className={"flex justify-between items-center w-full text-gray-900 dark:text-gray-300"}>
@@ -80,6 +84,7 @@ function Manga(props) {
                     </div>
                 </div>
             </div>
+            <Navbar />
         </div>
     )
 }
