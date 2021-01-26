@@ -12,21 +12,11 @@ function Search(props) {
     )
 }
 
-function Browse() {
+function Library() {
     const [mangaList, setMangaList] = React.useState([]);
     const [page, setPage] = React.useState(1);
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
-
-    React.useEffect(() => {
-        fetch(`/api/source/mangadex?filters[title]=${keyword}&filters[p]=${page}`)
-            .then((response) => response.json())
-            .then((data) => {
-                setMangaList([...mangaList, ...data]);
-            }).catch((e) => {
-                console.log(e);
-            });
-    }, [keyword, page])
 
     return (
         <div className={"main bg-gray-50 dark:bg-gray-900"}>
@@ -55,4 +45,4 @@ function Browse() {
     )
 }
 
-export default Browse;
+export default Library;
