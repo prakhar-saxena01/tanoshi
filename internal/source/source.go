@@ -23,6 +23,8 @@ type Source struct {
 	Installed  bool   `gorm:"-"`
 	Version    string `gorm:"-"`
 	URL        string `gorm:"-"`
+	Script     string `gorm:"-"`
+	Icon       string `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
 }
@@ -52,6 +54,10 @@ func (s *Source) Initialize() error {
 		s.l.Close()
 		return err
 	}
+	if err := s.getLanguageOptions(); err != nil {
+		s.l.Close()
+		return err
+	}
 
 	return nil
 }
@@ -70,6 +76,21 @@ func (s *Source) getBaseURL() error {
 		return err
 	}
 	s.URL = s.l.CheckString(1)
+	s.l.Pop(1)
+	return nil
+}
+
+func (s *Source) getLanguageOptions() error {
+	if err := s.callLuaFunc("languages"); err != nil {
+		return err
+	}
+
+	s.Config.Language = make(map[string]bool)
+	tbl := s.l.CheckTable(1)
+	tbl.ForEach(func(_, v lua.LValue) {
+		s.Config.Language[v.String()] = false
+	})
+
 	s.l.Pop(1)
 	return nil
 }
@@ -202,8 +223,10 @@ func (s *Source) getChapters(body *string) ([]*Chapter, error) {
 		tbl.ForEach(func(_, v lua.LValue) {
 			if ud, ok := v.(*lua.LUserData); ok {
 				if c, ok := ud.Value.(*Chapter); ok {
-					c.Source = s.Name
-					chapters = append(chapters, c)
+					if s.Config.Language[c.Language] {
+						c.Source = s.Name
+						chapters = append(chapters, c)
+					}
 				}
 			}
 		})

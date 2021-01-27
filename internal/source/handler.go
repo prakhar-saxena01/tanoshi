@@ -24,6 +24,14 @@ func (h *Handler) GetSourceDetail(name string) (*Source, error) {
 	return h.sm.Get(name), nil
 }
 
+func (h *Handler) GetSourceConfig(name string) (*Config, error) {
+	return h.sm.GetSourceConfig(name)
+}
+
+func (h *Handler) UpdateSourceConfig(name string, c *Config) error {
+	return h.sm.UpdateSourceConfig(name, c)
+}
+
 func (h *Handler) GetSourceLatestUpdates(name string, page int) ([]*Manga, error) {
 	return h.sm.GetLatestUpdates(name, page)
 }

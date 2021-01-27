@@ -7,7 +7,7 @@ require (
 	github.com/antchfx/xpath v1.1.11 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
-	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/json-iterator/go v1.1.10
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect

@@ -15,10 +15,6 @@ function BrowseSources() {
             });
     }, [])
 
-    if (!sourceList) {
-        return <div></div>
-    }
-
     return (
         <div className={"lg:pl-48"}>
             <Topbar>
@@ -27,7 +23,7 @@ function BrowseSources() {
                 <span></span>
             </Topbar>
             <div className={"p-2 rounded-lg bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"}>
-                {sourceList.map((s, index) => (
+                {sourceList && sourceList.map((s, index) => (
                     <div key={index} className={"p-2 shadow"}>
                         <Link className={"flex justify-between"} to={`/browse/${s.Name}`}>
                             <div className={"inline-flex"}>

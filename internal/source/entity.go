@@ -2,7 +2,9 @@ package source
 
 import (
 	"database/sql/driver"
-	"encoding/json"
+
+	jsoniter "github.com/json-iterator/go"
+
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,8 +14,11 @@ import (
 	"gorm.io/gorm"
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 type Config struct {
-	Header http.Header
+	Header   http.Header `json:",omitempty"`
+	Language map[string]bool
 }
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
@@ -30,6 +35,9 @@ func (c *Config) Scan(value interface{}) error {
 	}
 	if c.Header == nil {
 		c.Header = make(http.Header)
+	}
+	if c.Language == nil {
+		c.Language = make(map[string]bool)
 	}
 	return nil
 }
@@ -70,7 +78,8 @@ type Chapter struct {
 	Number       string
 	Title        string
 	Path         string
-	Uploaded     time.Time
+	Language     string
+	UploadedAt   time.Time
 	ReadAt       *time.Time `luar:"-"`
 	LastPageRead int        `luar:"-"`
 	Pages        []*Page

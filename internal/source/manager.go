@@ -1,7 +1,8 @@
 package source
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
+
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -41,12 +42,15 @@ func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
 	defer resp.Body.Close()
 
 	var sources []*Source
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	err = json.NewDecoder(resp.Body).Decode(&sources)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := range sources {
+		sources[i].Icon = fmt.Sprintf("%s/%s", RepositoryURL, sources[i].Icon)
 		_, sources[i].Installed = sm.sources[strings.ToLower(sources[i].Name)]
 	}
 
@@ -93,9 +97,32 @@ func (sm *Manager) List() []*Source {
 	return sources
 }
 
+func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
+	s, ok := sm.sources[name]
+	if !ok {
+		return nil, errors.New("No source")
+	}
+
+	c := s.Config
+	c.Header = nil
+
+	return &c, nil
+}
+
+func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
+	s, ok := sm.sources[name]
+	if !ok {
+		return errors.New("No source")
+	}
+
+	s.Config = *c
+	return sm.repo.SaveSourceConfig(s)
+}
+
 func (sm *Manager) Get(name string) *Source {
 	return sm.sources[name]
 }
+
 func (sm *Manager) GetLatestUpdates(name string, page int) ([]*Manga, error) {
 	mangas, err := sm.Get(name).GetLatestUpdates(page)
 	if err != nil {

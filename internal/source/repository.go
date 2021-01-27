@@ -41,6 +41,10 @@ func (r *Repository) SaveSource(s *Source) error {
 	return r.db.Save(s).Error
 }
 
+func (r *Repository) SaveSourceConfig(s *Source) error {
+	return r.db.Model(s).Update("config", &s.Config).Error
+}
+
 func (r *Repository) SaveManga(m *Manga) (*Manga, error) {
 	err := r.db.Save(m).Error
 	if err != nil {

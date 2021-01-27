@@ -49,6 +49,28 @@ func (s *Server) RegisterHandler() {
 		}
 		c.Status(200)
 	})
+	api.GET("/source/:name/config", func(c *gin.Context) {
+		config, err := s.sourceHandler.GetSourceConfig(c.Param("name"))
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.JSON(200, config)
+	})
+	api.PUT("/source/:name/config", func(c *gin.Context) {
+		var config source.Config
+		if err := c.ShouldBindJSON(&config); err != nil {
+			c.AbortWithError(400, err)
+			return
+		}
+
+		err := s.sourceHandler.UpdateSourceConfig(c.Param("name"), &config)
+		if err != nil {
+			c.AbortWithError(500, err)
+			return
+		}
+		c.JSON(200, config)
+	})
 	api.GET("/source/:name", func(c *gin.Context) {
 		filters := c.QueryMap("filters")
 
