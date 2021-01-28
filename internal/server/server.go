@@ -1,20 +1,25 @@
 package server
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/faldez/tanoshi/internal/source"
 	"github.com/gin-gonic/gin"
+
+	"golang.org/x/sync/singleflight"
 )
 
 type Server struct {
 	sourceHandler *source.Handler
 	r             *gin.Engine
+	requestGroup  singleflight.Group
 }
 
 func NewServer(sourceHandler *source.Handler) Server {
 	r := gin.Default()
-	return Server{sourceHandler, r}
+	var requestGroup singleflight.Group
+	return Server{sourceHandler, r, requestGroup}
 }
 
 func (s *Server) RegisterHandler() {
@@ -72,9 +77,17 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, config)
 	})
 	api.GET("/source/:name", func(c *gin.Context) {
+		name := c.Param("name")
 		filters := c.QueryMap("filters")
 
-		mangas, err := s.sourceHandler.SearchManga(c.Param("name"), filters)
+		mangas, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s", name), func() (interface{}, error) {
+			mangas, err := s.sourceHandler.SearchManga(name, filters)
+			if err != nil {
+				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+				return nil, err
+			}
+			return mangas, nil
+		})
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -82,9 +95,16 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, mangas)
 	})
 	api.GET("/source/:name/latest", func(c *gin.Context) {
+		name := c.Param("name")
 		page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
 
-		latestManga, err := s.sourceHandler.GetSourceLatestUpdates(c.Param("name"), int(page))
+		latestManga, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s/latest", name), func() (interface{}, error) {
+			latestManga, err := s.sourceHandler.GetSourceLatestUpdates(name, int(page))
+			if err != nil {
+				return nil, err
+			}
+			return latestManga, nil
+		})
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -92,7 +112,8 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, latestManga)
 	})
 	api.GET("/source/:name/detail", func(c *gin.Context) {
-		source, err := s.sourceHandler.GetSourceDetail(c.Param("name"))
+		name := c.Param("name")
+		source, err := s.sourceHandler.GetSourceDetail(name)
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -117,7 +138,15 @@ func (s *Server) RegisterHandler() {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		includeChapter, _ := strconv.ParseBool(c.DefaultQuery("includeChapter", "false"))
 
-		manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter)
+		manga, err, _ := s.requestGroup.Do(fmt.Sprintf("manga/%d/%v", id, includeChapter), func() (interface{}, error) {
+			manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter)
+			if err != nil {
+				return nil, err
+			}
+
+			return manga, nil
+		})
+
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -126,7 +155,15 @@ func (s *Server) RegisterHandler() {
 	})
 	api.GET("/manga/:id/chapters", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		chapters, err := s.sourceHandler.GetChapters(uint(id))
+
+		chapters, err, _ := s.requestGroup.Do(fmt.Sprintf("manga/%d/chapters", id), func() (interface{}, error) {
+			chapters, err := s.sourceHandler.GetChapters(uint(id))
+			if err != nil {
+				return nil, err
+			}
+
+			return chapters, nil
+		})
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -153,7 +190,15 @@ func (s *Server) RegisterHandler() {
 	})
 	api.GET("/chapter/:id", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		chapter, err := s.sourceHandler.GetChapter(uint(id))
+
+		chapter, err, _ := s.requestGroup.Do(fmt.Sprintf("chapter/%d", id), func() (interface{}, error) {
+			chapter, err := s.sourceHandler.GetChapter(uint(id))
+			if err != nil {
+				return nil, err
+			}
+
+			return chapter, nil
+		})
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return

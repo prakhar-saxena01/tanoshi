@@ -75,10 +75,11 @@ type Chapter struct {
 	gorm.Model   `luar:"-"`
 	Source       string `luar:"-"`
 	MangaID      uint
+	Path         string
 	Number       string
 	Title        string
-	Path         string
 	Language     string
+	Rank         float64
 	UploadedAt   time.Time
 	ReadAt       *time.Time `luar:"-"`
 	LastPageRead int        `luar:"-"`

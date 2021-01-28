@@ -35,6 +35,8 @@ function Cover(props) {
     const onmouseup = (e) => {
         e.preventDefault();
         if (timeout) {
+            clearTimeout(timeout);
+            timeout = undefined;
             navigate(`/manga/${props.id}`)
         }
     }
@@ -56,7 +58,9 @@ function Cover(props) {
     const ontouchend = (e) => {
         e.preventDefault();
         if (timeout) {
-            // navigate(`/manga/${props.id}`)
+            clearTimeout(timeout);
+            timeout = undefined;
+            navigate(`/manga/${props.id}`)
         }
     }
 

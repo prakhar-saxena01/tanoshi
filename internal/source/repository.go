@@ -46,7 +46,7 @@ func (r *Repository) SaveSourceConfig(s *Source) error {
 }
 
 func (r *Repository) SaveManga(m *Manga) (*Manga, error) {
-	err := r.db.Save(m).Error
+	err := r.db.Omit("is_favorite", "created_at").Save(m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (r *Repository) GetMangaByID(id uint, includeChapter bool) (*Manga, error) 
 				languages = append(languages, lang)
 			}
 		}
-		err = r.db.Model(&manga).Where("language IN ?", languages).Order("number desc").Association("Chapters").Find(&chapters)
+		err = r.db.Model(&manga).Where("language IN ?", languages).Order("rank desc").Association("Chapters").Find(&chapters)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +149,7 @@ func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 }
 
 func (r *Repository) SaveChapter(c *Chapter) (*Chapter, error) {
-	err := r.db.Save(c).Error
+	err := r.db.Updates(c).Error
 	if err != nil {
 		return nil, err
 	}

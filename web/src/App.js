@@ -1,4 +1,5 @@
 import './App.css';
+import 'animate.css'
 import { Router } from "@reach/router";
 import Library from './Library';
 import Browse from './Browse';
@@ -10,6 +11,7 @@ import Settings from './Settings';
 import SettingCategories from './SettingCategories';
 import SettingSources from './SettingSources';
 import SettingSource from './SettingSource';
+import SettingReader from './SettingReader';
 
 function App() {
   return (
@@ -24,6 +26,7 @@ function App() {
         <Reader path="chapter/:chapterId" />
         <Settings path="settings">
           <SettingCategories path="/" />
+          <SettingReader path="reader" />
           <SettingSources path="source" />
           <SettingSource path="source/:sourceName"/>
         </Settings>

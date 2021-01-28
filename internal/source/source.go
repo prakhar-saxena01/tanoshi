@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 
 	"github.com/faldez/tanoshi/internal/lua/helper"
 	"github.com/faldez/tanoshi/internal/lua/scraper"
@@ -32,6 +33,10 @@ type Source struct {
 // Initialize initialize source from specified path
 func (s *Source) Initialize() error {
 	s.l = lua.NewState()
+	s.Config = Config{
+		Header:   make(http.Header),
+		Language: make(map[string]bool),
+	}
 	s.httpClient = &http.Client{}
 
 	s.l.PreloadModule("scraper", scraper.NewHTMLScraper().Loader)
@@ -225,6 +230,7 @@ func (s *Source) getChapters(body *string) ([]*Chapter, error) {
 				if c, ok := ud.Value.(*Chapter); ok {
 					if s.Config.Language[c.Language] {
 						c.Source = s.Name
+						c.Rank, _ = strconv.ParseFloat(c.Number, 64)
 						chapters = append(chapters, c)
 					}
 				}

@@ -22,9 +22,8 @@ function BrowseSources() {
                 <span className={"text-gray-300"}>Browse</span>
                 <span></span>
             </Topbar>
-            <div className={"p-2 rounded-lg bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"}>
                 {sourceList && sourceList.map((s, index) => (
-                    <div key={index} className={"p-2 shadow"}>
+                    <div key={index} className={"bg-white dark:bg-gray-700 rounded mx-2 p-2 shadow"}>
                         <Link className={"flex justify-between"} to={`/browse/${s.Name}`}>
                             <div className={"inline-flex"}>
                                 <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
@@ -36,7 +35,6 @@ function BrowseSources() {
                         </Link>
                     </div>
                 ))}
-            </div>
         </div>
     )
 }

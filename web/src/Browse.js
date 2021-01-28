@@ -12,7 +12,7 @@ function Search(props) {
 
 function Browse(props) {
     return (
-        <div className={"main bg-white dark:bg-gray-900"}>
+        <div className={"main bg-gray-100 dark:bg-gray-900"}>
             {props.children}
             <Navbar />
         </div>

@@ -1,9 +1,10 @@
+import { navigate } from '@reach/router';
 import React, { useState } from 'react';
 
 function Topbar(props) {
     return (
-        <div className={"flex justify-between items-center animated slideInDown faster block fixed inset-x-0 top-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-safe-top pb-2 text-gray-50"}>
-            <button className={"mx-2"}>
+        <div className={`flex justify-between items-center animate__animated  ${props.visible ? "animate__slideInDown" : "animate__slideOutUp"} animate__faster block fixed inset-x-0 top-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-safe-top pb-2 text-gray-50`}>
+            <button className={"mx-2"} onClick={(e) => navigate(-1)}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -21,14 +22,14 @@ function Topbar(props) {
 
 function Bottombar(props) {
     return (
-        <div className={"flex justify-between items-center animated slideInDown faster block fixed inset-x-0 bottom-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-2 pb-safe-bottom text-gray-50"}>
+        <div className={`flex justify-between items-center animate__animated ${props.visible ? "animate__slideInUp" : "animate__slideOutDown"} fanimate__aster block fixed inset-x-0 bottom-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-2 pb-safe-bottom text-gray-50`}>
             <button>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
                 </svg>
             </button>
             <div>
-                <span>{props.currentPage}</span>
+                <span>{props.currentPage + 1}</span>
                 <span>/</span>
                 <span>{props.pageLength}</span>
             </div>
@@ -56,7 +57,7 @@ function SingleReader(props) {
     return (
         <div>
             <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => props.setCurrentPage(props.currentPage - 1)}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"}></div>
+            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
             <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => props.setCurrentPage(props.currentPage + 1)}></div>
             {props.pages.map((p, index) => (
                 <img className={`mx-auto h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
@@ -66,12 +67,24 @@ function SingleReader(props) {
 }
 
 function DoubleReader(props) {
+    const nextPage = (val) => {
+        if (props.currentPage + val < props.pages.length) {
+            props.setCurrentPage(props.currentPage + 2)
+        }
+    }
+
+    const prevPage = (val) => {
+        if (props.currentPage - val >= 0) {
+            props.setCurrentPage(props.currentPage - 2)
+        }
+    }
+
     return (
         <div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => props.setCurrentPage(props.currentPage - 2)}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => props.setCurrentPage(props.currentPage + 2)}></div>
-            <div className={"flex h-screen justify-center overflow-visible flex-row"}>
+            <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage()}></div>
+            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
+            <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage()}></div>
+            <div className={`flex h-screen justify-center overflow-visible ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
                 {props.pages.map((p, index) => (
                     <img className={`object-contain h-screen  ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
                 ))}
@@ -80,32 +93,96 @@ function DoubleReader(props) {
     )
 }
 
+function ReaderWrapper(props) {
+    const nextPage = (val) => {
+        if (props.currentPage + val < props.pages.length) {
+            props.setCurrentPage(props.currentPage + 2)
+        }
+    }
+
+    const prevPage = (val) => {
+        if (props.currentPage - val >= 0) {
+            props.setCurrentPage(props.currentPage - 2)
+        }
+    }
+
+    if (props.readerMode === "continous") {
+        return (
+            <div className={"h-screen overflow-y-auto"}>
+                {props.pages.map((p, index) => (
+                    <img className={"page my-1 mx-auto"} key={index} src={p.URL} alt={index}></img>
+                ))}
+            </div>
+        )
+    } else if (props.readerMode === "paged") {
+        if (props.displayMode === "single") {
+            return (
+                <div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage(1)}></div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(1)}></div>
+                    {props.pages.map((p, index) => (
+                        <img className={`mx-auto h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
+                    ))}
+                </div>
+            )
+        } else if (props.displayMode === "double") {
+            return (
+                <div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage(2)}></div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
+                    <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(2)}></div>
+                    <div className={`flex h-screen justify-center overflow-visible ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
+                        {props.pages.map((p, index) => (
+                            <img className={`object-contain h-screen  ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
+                        ))}
+                    </div>
+                </div>
+            )
+        }
+    } else {
+        return (
+            <div></div>
+        )
+    }
+}
 
 function Reader(props) {
     const [currentPage, setCurrentPage] = useState(0);
     const [chapter, setChapter] = useState();
+    const [barVisible, setBarVisible] = useState(true);
+
+    const [readerMode, setReaderMode] = React.useState();
+    const [displayMode, setDisplayMode] = React.useState();
+    const [direction, setDirection] = React.useState();
+    const [background, setBackground] = React.useState();
 
     React.useState(() => {
-        fetch(`/api/chapter/${props.chapterId}`)
-            .then((response) => response.json())
-            .then((data) => {
-                setChapter(data);
-            }).catch((e) => {
-                console.log(e);
-            });
+        setReaderMode(localStorage.getItem("readerMode"));
+        setDisplayMode(localStorage.getItem("displayMode"));
+        setDirection(localStorage.getItem("direction"));
+        setBackground(localStorage.getItem("background"));
     })
 
-    if (!chapter) {
-        return <div></div>
-    }
+    React.useState(() => {
+        if (!chapter) {
+            fetch(`/api/chapter/${props.chapterId}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    setChapter(data);
+                }).catch((e) => {
+                    console.log(e);
+                });
+        }
+    })
 
     return (
         <div>
-            <Topbar title={chapter.Title !== "" ? chapter.Title : chapter.Number}/>
-            <div className={"bg-gray-50"}>
-                <DoubleReader currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter.Pages}/>
+            <Topbar title={chapter ? chapter.Title !== "" ? chapter.Title : chapter.Number : ""} visible={barVisible} />
+            <div className={`${background === "black" ? "bg-gray-900" : "bg-white"}`}>
+                <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
             </div>
-            <Bottombar currentPage={currentPage} pageLength={chapter.Pages.length}/>
+            <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} />
         </div>
     )
 }
