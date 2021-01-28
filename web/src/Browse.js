@@ -1,6 +1,4 @@
 import React from 'react';
-import Cover from './common/Cover';
-import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
 
 function Search(props) {

@@ -4,12 +4,12 @@ import Library from './Library';
 import Browse from './Browse';
 import BrowseSources from './BrowseSources';
 import BrowseSource from './BrowseSource';
-import SourceLogin from './SourceLogin';
 import Manga from './Manga';
 import Reader from './Reader';
 import Settings from './Settings';
 import SettingCategories from './SettingCategories';
 import SettingSources from './SettingSources';
+import SettingSource from './SettingSource';
 
 function App() {
   return (
@@ -19,13 +19,13 @@ function App() {
         <Browse path="browse">
           <BrowseSources path="/"/>
           <BrowseSource path="/:sourceName"/>
-          <SourceLogin path="/:sourceName/login"/>
         </Browse>
         <Manga path="manga/:mangaId" />
         <Reader path="chapter/:chapterId" />
         <Settings path="settings">
           <SettingCategories path="/" />
-          <SettingSources path="sources" />
+          <SettingSources path="source" />
+          <SettingSource path="source/:sourceName"/>
         </Settings>
       </Router>
     </div>

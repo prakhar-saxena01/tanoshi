@@ -12,33 +12,38 @@ function Search(props) {
     )
 }
 
-function Library() {
+function Library(props) {
     const [mangaList, setMangaList] = React.useState([]);
-    const [page, setPage] = React.useState(1);
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
 
+    React.useEffect(() => {
+        fetch(`/api/library`)
+            .then((response) => response.json())
+            .then((data) => {
+                setMangaList([...mangaList, ...data]);
+            }).catch((e) => {
+                console.log(e);
+            });
+    }, [keyword])
+
     return (
-        <div className={"main bg-gray-50 dark:bg-gray-900"}>
-            <Topbar setSearch={() => { setSearch(!isSearch) }}>
+        <div className={"main bg-white dark:bg-gray-900"}>
+            <Topbar>
                 <button>Filter</button>
-                <span className={"text-gray-300"}>Browse</span>
-                <button onClick={() => setSearch(!isSearch)}>Search</button>
+                <span className={"text-gray-300"}>Library</span>
+                <button >Search</button>
             </Topbar>
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
                 setMangaList([]);
-                setPage(1);
                 setKeyword(e.target.value);
             }} />}
-            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
+            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll bg-white"}>
                 <div className={"w-full grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2"}>
                     {mangaList.map((el, index) => (
-                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} />
+                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL}  isFavorite={el.IsFavorite}/>
                     ))}
                 </div>
-                <button className={"w-full text-gray-900 dark:text-gray-50"} onClick={() => setPage(page + 1)}>
-                    Load More
-                </button>
             </div>
             <Navbar />
         </div>

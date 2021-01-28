@@ -1,11 +1,7 @@
 package server
 
-type GetLatestUpdatesRequest struct {
-	Page int
-}
-
-type GetMangaDetailsRequest struct {
-	IncludeChapter bool
+type ErrorMessage struct {
+	Message string
 }
 
 type LoginRequest struct {

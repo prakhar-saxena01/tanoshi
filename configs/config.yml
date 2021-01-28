@@ -1,0 +1,3 @@
+port: "8080"
+database_url: sqlite://./kumo.db
+extension_url: https://faldez.github.io/tanoshi-extensions

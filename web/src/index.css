@@ -21,3 +21,13 @@ code {
 padding-top: calc(env(safe-area-inset-top) + theme('spacing.12'));
 height: 100vh;
 }
+
+.toggle-checkbox:checked {
+  @apply: right-0 border-accent;
+  right: 0;
+  border-color: #5b749b;
+}
+.toggle-checkbox:checked + .toggle-label {
+  @apply: bg-accent;
+  background-color: #5b749b;
+}

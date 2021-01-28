@@ -4,5 +4,6 @@ target/
 .env
 .idea/
 mangas/
-config.yml
 *.db
+node_modules/
+web/.eslintcache

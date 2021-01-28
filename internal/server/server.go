@@ -28,13 +28,13 @@ func (s *Server) RegisterHandler() {
 		if _, installed := c.GetQuery("installed"); !installed {
 			sourceList, err = s.sourceHandler.GetSourcesFromRemote()
 			if err != nil {
-				c.AbortWithError(500, err)
+				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 				return
 			}
 		} else {
 			sourceList, err = s.sourceHandler.GetSourceList()
 			if err != nil {
-				c.AbortWithError(500, err)
+				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 				return
 			}
 		}
@@ -44,7 +44,7 @@ func (s *Server) RegisterHandler() {
 	api.POST("/source/:name/install", func(c *gin.Context) {
 		err := s.sourceHandler.InstallSource(c.Param("name"))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.Status(200)
@@ -52,7 +52,7 @@ func (s *Server) RegisterHandler() {
 	api.GET("/source/:name/config", func(c *gin.Context) {
 		config, err := s.sourceHandler.GetSourceConfig(c.Param("name"))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, config)
@@ -60,13 +60,13 @@ func (s *Server) RegisterHandler() {
 	api.PUT("/source/:name/config", func(c *gin.Context) {
 		var config source.Config
 		if err := c.ShouldBindJSON(&config); err != nil {
-			c.AbortWithError(400, err)
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
 			return
 		}
 
 		err := s.sourceHandler.UpdateSourceConfig(c.Param("name"), &config)
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, config)
@@ -76,7 +76,7 @@ func (s *Server) RegisterHandler() {
 
 		mangas, err := s.sourceHandler.SearchManga(c.Param("name"), filters)
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, mangas)
@@ -86,7 +86,7 @@ func (s *Server) RegisterHandler() {
 
 		latestManga, err := s.sourceHandler.GetSourceLatestUpdates(c.Param("name"), int(page))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, latestManga)
@@ -94,7 +94,7 @@ func (s *Server) RegisterHandler() {
 	api.GET("/source/:name/detail", func(c *gin.Context) {
 		source, err := s.sourceHandler.GetSourceDetail(c.Param("name"))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, source)
@@ -102,13 +102,13 @@ func (s *Server) RegisterHandler() {
 	api.POST("/source/:name/login", func(c *gin.Context) {
 		var req LoginRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.AbortWithError(400, err)
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
 			return
 		}
 
 		err := s.sourceHandler.Login(c.Param("name"), req.Username, req.Password, req.TwoFactor, req.Remember)
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.Status(200)
@@ -119,7 +119,7 @@ func (s *Server) RegisterHandler() {
 
 		manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter)
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, manga)
@@ -128,7 +128,7 @@ func (s *Server) RegisterHandler() {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		chapters, err := s.sourceHandler.GetChapters(uint(id))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, chapters)
@@ -137,7 +137,7 @@ func (s *Server) RegisterHandler() {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		err := s.sourceHandler.SaveFavorite(uint(id))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.Status(200)
@@ -146,7 +146,7 @@ func (s *Server) RegisterHandler() {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		err := s.sourceHandler.DeleteFavorite(uint(id))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.Status(200)
@@ -155,7 +155,7 @@ func (s *Server) RegisterHandler() {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		chapter, err := s.sourceHandler.GetChapter(uint(id))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
 		c.JSON(200, chapter)
@@ -164,6 +164,14 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
+	})
+	api.GET("/library", func(c *gin.Context) {
+		mangas, err := s.sourceHandler.GetFavoriteManga()
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+		c.JSON(200, mangas)
 	})
 }
 

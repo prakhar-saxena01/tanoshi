@@ -83,14 +83,27 @@ func (r *Repository) SaveMangaInBatch(mangas []*Manga) ([]*Manga, error) {
 
 func (r *Repository) GetMangaByID(id uint, includeChapter bool) (*Manga, error) {
 	var (
-		manga    Manga = Manga{}
-		chapters []Chapter
-		err      error
+		source    Source
+		manga     Manga = Manga{}
+		chapters  []Chapter
+		languages []string
+		err       error
 	)
+
+	err = r.db.Where("name = (?)", r.db.Table("mangas").Select("name").Where("id = ?", id)).First(&source).Error
+	if err != nil {
+		return nil, err
+	}
+
 	manga.ID = id
 
 	if includeChapter {
-		err = r.db.Model(&manga).Association("Chapters").Find(&chapters)
+		for lang, enabled := range source.Config.Language {
+			if enabled {
+				languages = append(languages, lang)
+			}
+		}
+		err = r.db.Model(&manga).Where("language IN ?", languages).Order("number desc").Association("Chapters").Find(&chapters)
 		if err != nil {
 			return nil, err
 		}
@@ -144,10 +157,20 @@ func (r *Repository) SaveChapter(c *Chapter) (*Chapter, error) {
 	return c, nil
 }
 
+func (r *Repository) GetFavoriteManga() ([]*Manga, error) {
+	var mangas []*Manga
+	err := r.db.Where("is_favorite = true").Find(&mangas).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return mangas, nil
+}
+
 func (r *Repository) SaveFavorite(mangaID uint) error {
-	return r.db.Model(&Manga{}).Update("is_favorite", true).Error
+	return r.db.Model(&Manga{}).Where("id = ?", mangaID).Update("is_favorite", true).Error
 }
 
 func (r *Repository) DeleteFavorite(mangaID uint) error {
-	return r.db.Model(&Manga{}).Update("is_favorite", false).Error
+	return r.db.Model(&Manga{}).Where("id = ?", mangaID).Update("is_favorite", false).Error
 }

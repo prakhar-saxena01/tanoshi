@@ -11,11 +11,11 @@ import (
 )
 
 type Config struct {
-	path         string                 `yaml:"-"`
-	Port         string                 `yaml:"port"`
-	DatabaseURL  string                 `yaml:"database_url"`
-	SecretKey    string                 `yaml:"secret_key"`
-	SourceConfig map[string]interface{} `yaml:"source_config"`
+	path         string `yaml:"-"`
+	Port         string `yaml:"port"`
+	DatabaseURL  string `yaml:"database_url"`
+	Password     string `yaml:"password"`
+	ExtensionURL string `yaml:"extension_url"`
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -34,7 +34,7 @@ func defaultConfig(path string) *Config {
 	return &Config{
 		Port:        "80",
 		DatabaseURL: "sqlite://" + filepath.Dir(path) + "/kumo.db",
-		SecretKey:   randSeq(32),
+		Password:    randSeq(32),
 	}
 }
 
@@ -50,8 +50,8 @@ func Load(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if config.SecretKey == "" {
-		config.SecretKey = randSeq(32)
+	if config.Password == "" {
+		config.Password = randSeq(32)
 		config.Save()
 	}
 	config.path = path

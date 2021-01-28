@@ -88,7 +88,7 @@ func (s *Source) getLanguageOptions() error {
 	s.Config.Language = make(map[string]bool)
 	tbl := s.l.CheckTable(1)
 	tbl.ForEach(func(_, v lua.LValue) {
-		s.Config.Language[v.String()] = false
+		s.Config.Language[v.String()] = true
 	})
 
 	s.l.Pop(1)

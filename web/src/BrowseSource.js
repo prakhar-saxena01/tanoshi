@@ -1,7 +1,6 @@
 import React from 'react';
 import Cover from './common/Cover';
 import Topbar from './common/Topbar';
-import { Link } from "@reach/router";
 
 function Search(props) {
     return (
@@ -33,7 +32,7 @@ function BrowseSource(props) {
             <Topbar>
                 <button>Filter</button>
                 <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
-                <Link to={"login"}>Login</Link>
+                <button >Search</button>
             </Topbar>
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
                 setMangaList([]);
@@ -43,7 +42,7 @@ function BrowseSource(props) {
             <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll bg-white"}>
                 <div className={"w-full grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2"}>
                     {mangaList.map((el, index) => (
-                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} />
+                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite}/>
                     ))}
                 </div>
                 <button className={"w-full text-gray-900 dark:text-gray-50"} onClick={() => setPage(page + 1)}>

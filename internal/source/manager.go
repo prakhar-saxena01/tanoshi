@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var RepositoryURL = "https://faldez.github.io/kumo-extensions"
+var RepositoryURL = "https://faldez.github.io/tanoshi-extensions"
 
 type Manager struct {
 	repo    *Repository
@@ -103,10 +103,9 @@ func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
 		return nil, errors.New("No source")
 	}
 
-	c := s.Config
-	c.Header = nil
-
-	return &c, nil
+	return &Config{
+		Language: s.Config.Language,
+	}, nil
 }
 
 func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
@@ -115,6 +114,7 @@ func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
 		return errors.New("No source")
 	}
 
+	c.Header = s.Config.Header
 	s.Config = *c
 	return sm.repo.SaveSourceConfig(s)
 }
@@ -124,7 +124,12 @@ func (sm *Manager) Get(name string) *Source {
 }
 
 func (sm *Manager) GetLatestUpdates(name string, page int) ([]*Manga, error) {
-	mangas, err := sm.Get(name).GetLatestUpdates(page)
+	s, ok := sm.sources[name]
+	if !ok {
+		return nil, errors.New("No source")
+	}
+
+	mangas, err := s.GetLatestUpdates(page)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +143,12 @@ func (sm *Manager) GetLatestUpdates(name string, page int) ([]*Manga, error) {
 }
 
 func (sm *Manager) SearchManga(name string, filter Filters) ([]*Manga, error) {
-	mangas, err := sm.Get(name).FetchManga(filter)
+	s, ok := sm.sources[name]
+	if !ok {
+		return nil, errors.New("No source")
+	}
+
+	mangas, err := s.FetchManga(filter)
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +169,7 @@ func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error)
 	if manga == nil {
 		return nil, errors.New("manga not found")
 	}
+
 	if !manga.IsIncomplete() {
 		if includeChapter && len(manga.Chapters) > 0 {
 			return manga, nil
@@ -166,6 +177,7 @@ func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error)
 			return manga, nil
 		}
 	}
+
 	manga, err = sm.Get(manga.Source).GetMangaDetails(manga)
 	if err != nil {
 		return nil, err
@@ -232,11 +244,16 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 }
 
 func (sm *Manager) Login(name, username, password, twoFactor string, remember bool) error {
-	if err := sm.Get(name).Login(username, password, twoFactor, remember); err != nil {
+	s, ok := sm.sources[name]
+	if !ok {
+		return errors.New("No source")
+	}
+
+	if err := s.Login(username, password, twoFactor, remember); err != nil {
 		return err
 	}
 
-	if err := sm.repo.SaveSource(sm.Get(name)); err != nil {
+	if err := sm.repo.SaveSourceConfig(sm.Get(name)); err != nil {
 		return err
 	}
 
@@ -249,4 +266,8 @@ func (sm *Manager) SaveFavorite(mangaID uint) error {
 
 func (sm *Manager) DeleteFavorite(mangaID uint) error {
 	return sm.repo.DeleteFavorite(mangaID)
+}
+
+func (sm *Manager) GetFavoriteManga() ([]*Manga, error) {
+	return sm.repo.GetFavoriteManga()
 }

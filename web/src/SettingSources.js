@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from "@reach/router";
 
 function SettingSources() {
     const [sourceList, setSourceList] = React.useState();
@@ -36,7 +37,7 @@ function SettingSources() {
             <div className={"rounded-lg bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"}>
                 {sourceList.map((s, index) => (
                     <div key={index} className={"p-2 shadow"}>
-                        <div className={"flex justify-between"}>
+                        <Link className={"flex justify-between"} to={`/settings/source/${s.Name}`}>
                             <div className={"inline-flex"}>
                                 <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
                                 <div>
@@ -45,7 +46,7 @@ function SettingSources() {
                                 </div>
                             </div>
                             <button className={s.Installed ? "disabled" : "block"} onClick={() => installSource(s.Name)}>{s.Installed ? "Installed" : "Install"}</button>
-                        </div>
+                        </Link>
                     </div>
                 ))}
             </div>

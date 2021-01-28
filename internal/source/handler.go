@@ -63,3 +63,7 @@ func (h *Handler) SaveFavorite(mangaID uint) error {
 func (h *Handler) DeleteFavorite(mangaID uint) error {
 	return h.sm.DeleteFavorite(mangaID)
 }
+
+func (h *Handler) GetFavoriteManga() ([]*Manga, error) {
+	return h.sm.repo.GetFavoriteManga()
+}
