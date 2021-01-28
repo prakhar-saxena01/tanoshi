@@ -42,57 +42,6 @@ function Bottombar(props) {
     )
 }
 
-function VerticalReader(props) {
-    return (
-        <div className={"h-screen overflow-y-auto"}>
-            {props.pages.map((p, index) => (
-                <img className={"page my-1 mx-auto"} key={index} src={p.URL} alt={index}></img>
-            ))}
-        </div>
-    )
-}
-
-
-function SingleReader(props) {
-    return (
-        <div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => props.setCurrentPage(props.currentPage - 1)}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => props.setCurrentPage(props.currentPage + 1)}></div>
-            {props.pages.map((p, index) => (
-                <img className={`mx-auto h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
-            ))}
-        </div>
-    )
-}
-
-function DoubleReader(props) {
-    const nextPage = (val) => {
-        if (props.currentPage + val < props.pages.length) {
-            props.setCurrentPage(props.currentPage + 2)
-        }
-    }
-
-    const prevPage = (val) => {
-        if (props.currentPage - val >= 0) {
-            props.setCurrentPage(props.currentPage - 2)
-        }
-    }
-
-    return (
-        <div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage()}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
-            <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage()}></div>
-            <div className={`flex h-screen justify-center overflow-visible ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
-                {props.pages.map((p, index) => (
-                    <img className={`object-contain h-screen  ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
-                ))}
-            </div>
-        </div>
-    )
-}
-
 function ReaderWrapper(props) {
     const nextPage = (val) => {
         if (props.currentPage + val < props.pages.length) {
@@ -105,12 +54,25 @@ function ReaderWrapper(props) {
             props.setCurrentPage(props.currentPage - 2)
         }
     }
-
+    
+    const refs = React.useRef({});
+    
     if (props.readerMode === "continous") {
+        const onscroll = (e) => {
+            e.preventDefault();
+
+            let page = 0;
+            for (let i = 0; i < props.pages.length; i++) {
+                if (e.target.scrollTop > refs.current[i].offsetTop) {
+                    page = i;
+                }
+            }
+            props.setCurrentPage(page);
+        }
         return (
-            <div className={"h-screen overflow-y-auto"}>
+            <div className={"h-screen overflow-y-auto"} onScroll={onscroll}>
                 {props.pages.map((p, index) => (
-                    <img className={"page my-1 mx-auto"} key={index} src={p.URL} alt={index}></img>
+                    <img ref={(element) => refs.current[index] = element} className={"page my-2 mx-auto"} key={index} src={p.URL} alt={index}></img>
                 ))}
             </div>
         )
