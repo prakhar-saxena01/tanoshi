@@ -243,10 +243,6 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 	return chapter, err
 }
 
-func (sm *Manager) UpdateChapterLastPageRead(id uint, page int) error {
-	return sm.repo.UpdateChapterLastPageRead(id, page)
-}
-
 func (sm *Manager) Login(name, username, password, twoFactor string, remember bool) error {
 	s, ok := sm.sources[name]
 	if !ok {
@@ -262,16 +258,4 @@ func (sm *Manager) Login(name, username, password, twoFactor string, remember bo
 	}
 
 	return nil
-}
-
-func (sm *Manager) SaveFavorite(mangaID uint) error {
-	return sm.repo.SaveFavorite(mangaID)
-}
-
-func (sm *Manager) DeleteFavorite(mangaID uint) error {
-	return sm.repo.DeleteFavorite(mangaID)
-}
-
-func (sm *Manager) GetFavoriteManga() ([]*Manga, error) {
-	return sm.repo.GetFavoriteManga()
 }

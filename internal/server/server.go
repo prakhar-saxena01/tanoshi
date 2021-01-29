@@ -4,22 +4,31 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/faldez/tanoshi/internal/history"
+	"github.com/faldez/tanoshi/internal/library"
 	"github.com/faldez/tanoshi/internal/source"
+	"github.com/faldez/tanoshi/internal/update"
 	"github.com/gin-gonic/gin"
 
 	"golang.org/x/sync/singleflight"
 )
 
 type Server struct {
-	sourceHandler *source.Handler
-	r             *gin.Engine
-	requestGroup  singleflight.Group
+	sourceHandler  *source.Handler
+	libraryHandler *library.Handler
+	historyHandler *history.Handler
+	updateHandler  *update.Handler
+	r              *gin.Engine
+	requestGroup   singleflight.Group
 }
 
-func NewServer(sourceHandler *source.Handler) Server {
+func NewServer(sourceHandler *source.Handler,
+	libraryHandler *library.Handler,
+	historyHandler *history.Handler,
+	updateHandler *update.Handler) Server {
 	r := gin.Default()
 	var requestGroup singleflight.Group
-	return Server{sourceHandler, r, requestGroup}
+	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, r, requestGroup}
 }
 
 func (s *Server) RegisterHandler() {
@@ -170,24 +179,7 @@ func (s *Server) RegisterHandler() {
 		}
 		c.JSON(200, chapters)
 	})
-	api.PUT("/manga/:id/favorite", func(c *gin.Context) {
-		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		err := s.sourceHandler.SaveFavorite(uint(id))
-		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
-		}
-		c.Status(200)
-	})
-	api.DELETE("/manga/:id/favorite", func(c *gin.Context) {
-		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		err := s.sourceHandler.DeleteFavorite(uint(id))
-		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
-		}
-		c.Status(200)
-	})
+
 	api.GET("/chapter/:id", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 
@@ -205,11 +197,62 @@ func (s *Server) RegisterHandler() {
 		}
 		c.JSON(200, chapter)
 	})
-	api.PUT("/chapter/:id/read", func(c *gin.Context) {
+
+	api.GET("/library", func(c *gin.Context) {
+		mangas, err := s.libraryHandler.GetMangaFromLibrary()
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+		c.JSON(200, mangas)
+	})
+	api.POST("/library/manga/:id", func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Query("id"), 10, 64)
+		if id == 0 {
+			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
+			return
+		}
+
+		err := s.libraryHandler.SaveToLibrary(uint(id))
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+		c.Status(200)
+	})
+	api.DELETE("/library/manga/:id", func(c *gin.Context) {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		if id == 0 {
+			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
+			return
+		}
+
+		err := s.libraryHandler.DeleteFromLibrary(uint(id))
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+		c.Status(200)
+	})
+	api.GET("/history", func(c *gin.Context) {
+		histories, err := s.historyHandler.GetHistories()
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+
+		c.JSON(200, histories)
+	})
+	api.PUT("/history/chapter/:id", func(c *gin.Context) {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		if id == 0 {
+			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
+			return
+		}
+
 		page, _ := strconv.ParseInt(c.Query("page"), 10, 64)
 
-		err := s.sourceHandler.UpdateChapterLastPageRead(uint(id), int(page))
+		err := s.historyHandler.UpdateChapterLastPageRead(uint(id), int(page))
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -217,13 +260,14 @@ func (s *Server) RegisterHandler() {
 
 		c.Status(200)
 	})
-	api.GET("/library", func(c *gin.Context) {
-		mangas, err := s.sourceHandler.GetFavoriteManga()
+	api.GET("/update", func(c *gin.Context) {
+		updates, err := s.updateHandler.GetUpdates()
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
 		}
-		c.JSON(200, mangas)
+
+		c.JSON(200, updates)
 	})
 }
 

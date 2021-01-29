@@ -28,7 +28,7 @@ function Library(props) {
     }, [keyword])
 
     return (
-        <div className={"main bg-white dark:bg-gray-900"}>
+        <div className={"main bg-gray-100 dark:bg-gray-900"}>
             <Topbar>
                 <button>Filter</button>
                 <span className={"text-gray-300"}>Library</span>

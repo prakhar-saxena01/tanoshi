@@ -3,7 +3,6 @@ package source
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -156,26 +155,4 @@ func (r *Repository) SaveChapter(c *Chapter) (*Chapter, error) {
 	}
 
 	return c, nil
-}
-
-func (r *Repository) UpdateChapterLastPageRead(id uint, page int) error {
-	return r.db.Model(&Chapter{}).Where("id = ?", id).Updates(map[string]interface{}{"last_page_read": page, "read_at": time.Now()}).Error
-}
-
-func (r *Repository) GetFavoriteManga() ([]*Manga, error) {
-	var mangas []*Manga
-	err := r.db.Where("is_favorite = true").Find(&mangas).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return mangas, nil
-}
-
-func (r *Repository) SaveFavorite(mangaID uint) error {
-	return r.db.Model(&Manga{}).Where("id = ?", mangaID).Update("is_favorite", true).Error
-}
-
-func (r *Repository) DeleteFavorite(mangaID uint) error {
-	return r.db.Model(&Manga{}).Where("id = ?", mangaID).Update("is_favorite", false).Error
 }

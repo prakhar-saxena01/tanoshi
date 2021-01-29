@@ -7,6 +7,8 @@ import BrowseSources from './BrowseSources';
 import BrowseSource from './BrowseSource';
 import Manga from './Manga';
 import Reader from './Reader';
+import Update from './Update';
+import History from './History';
 import Settings from './Settings';
 import SettingCategories from './SettingCategories';
 import SettingSources from './SettingSources';
@@ -22,6 +24,8 @@ function App() {
           <BrowseSources path="/"/>
           <BrowseSource path="/:sourceName"/>
         </Browse>
+        <Update path="update" />
+        <History path="history" />
         <Manga path="manga/:mangaId" />
         <Reader path="chapter/:chapterId" />
         <Settings path="settings">

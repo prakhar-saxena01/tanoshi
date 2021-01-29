@@ -52,22 +52,6 @@ func (h *Handler) GetChapter(id uint) (*Chapter, error) {
 	return h.sm.GetChapter(id)
 }
 
-func (h *Handler) UpdateChapterLastPageRead(id uint, page int) error {
-	return h.sm.UpdateChapterLastPageRead(id, page)
-}
-
 func (h *Handler) Login(name, username, password, twoFactor string, remember bool) error {
 	return h.sm.Login(name, username, password, twoFactor, remember)
-}
-
-func (h *Handler) SaveFavorite(mangaID uint) error {
-	return h.sm.SaveFavorite(mangaID)
-}
-
-func (h *Handler) DeleteFavorite(mangaID uint) error {
-	return h.sm.DeleteFavorite(mangaID)
-}
-
-func (h *Handler) GetFavoriteManga() ([]*Manga, error) {
-	return h.sm.repo.GetFavoriteManga()
 }

@@ -152,7 +152,7 @@ function Reader(props) {
 
     React.useEffect(() => {
         if (currentPage > 0) {
-            fetch(`/api/chapter/${props.chapterId}/read?page=${currentPage}`, { method: "PUT" })
+            fetch(`/api/history/chapter/${props.chapterId}?page=${currentPage}`, { method: "PUT" })
                 .then((response) => response)
                 .catch((e) => {
                     console.log(e);

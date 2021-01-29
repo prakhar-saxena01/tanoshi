@@ -9,8 +9,8 @@ function Cover(props) {
     const [favorite, setIsFavorite] = React.useState(props.isFavorite);
 
     const toggleFavorite = () => {
-        fetch(`/api/manga/${props.id}/favorite`, {
-            method: !favorite ? "PUT" : "DELETE"
+        fetch(`/api/library/manga/${props.id}`, {
+            method: !favorite ? "POST" : "DELETE"
         })
             .then((response) => setIsFavorite(!favorite))
             .catch((e) => {

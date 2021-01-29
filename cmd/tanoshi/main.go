@@ -8,8 +8,11 @@ import (
 
 	"github.com/faldez/tanoshi/internal/config"
 	"github.com/faldez/tanoshi/internal/database"
+	"github.com/faldez/tanoshi/internal/history"
+	"github.com/faldez/tanoshi/internal/library"
 	"github.com/faldez/tanoshi/internal/server"
 	"github.com/faldez/tanoshi/internal/source"
+	"github.com/faldez/tanoshi/internal/update"
 )
 
 func main() {
@@ -37,16 +40,22 @@ func main() {
 
 	db.AutoMigrate(&source.Source{}, &source.Manga{}, &source.Chapter{}, &source.Page{})
 
-	repo := source.NewRepository(db)
+	sourceRepo := source.NewRepository(db)
+	libraryRepo := library.NewRepository(db)
+	historyRepo := history.NewRepository(db)
+	updateRepo := update.NewRepository(db)
 
-	sourceManager, err := source.NewManager(repo)
+	sourceManager, err := source.NewManager(sourceRepo)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
 	sourceHandler := source.NewHandler(sourceManager)
+	libraryHandler := library.NewHandler(libraryRepo)
+	historyHandler := history.NewHandler(historyRepo)
+	updateHandler := update.NewHandler(updateRepo)
 
-	srv := server.NewServer(sourceHandler)
+	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler)
 	srv.RegisterHandler()
 	srv.Run(fmt.Sprintf(":%s", cfg.Port))
 }

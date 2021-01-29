@@ -37,7 +37,9 @@ module.exports = {
         textColor: ['dark', 'responsive', 'hover', 'focus', 'disabled'],
         divideColor: ['dark']
     },
-    plugins: [],
+    plugins: [
+        require('@tailwindcss/typography'),
+    ],
     darkMode: 'media',
     experimental: {
         darkModeVariant: true,
