@@ -48,13 +48,13 @@ function ReaderWrapper(props) {
 
     const nextPage = (val) => {
         if (props.currentPage + val < props.pages.length) {
-            props.setCurrentPage(props.currentPage + 2)
+            props.setCurrentPage(props.currentPage + val)
         }
     }
 
     const prevPage = (val) => {
         if (props.currentPage - val >= 0) {
-            props.setCurrentPage(props.currentPage - 2)
+            props.setCurrentPage(props.currentPage - val)
         }
     }
 
@@ -92,24 +92,24 @@ function ReaderWrapper(props) {
     } else if (props.readerMode === "paged") {
         if (props.displayMode === "single") {
             return (
-                <div>
+                <div className={"self-center"}>
                     <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage(1)}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(1)}></div>
                     {props.pages.map((p, index) => (
-                        <img className={`mx-auto h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
+                        <img className={`h-auto md:h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
                     ))}
                 </div>
             )
         } else if (props.displayMode === "double") {
             return (
-                <div>
+                <div className={"self-center"}>
                     <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage(2)}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(2)}></div>
-                    <div className={`flex h-screen justify-center overflow-visible ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className={`flex justify-center overflow-x-auto ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
                         {props.pages.map((p, index) => (
-                            <img className={`object-contain h-screen  ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
+                            <img className={`object-contain h-screen w-1/2 ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
                         ))}
                     </div>
                 </div>
@@ -161,11 +161,9 @@ function Reader(props) {
     }, [props.chapterId, currentPage])
 
     return (
-        <div>
+        <div className={`min-h-screen flex ${background === "black" ? "bg-gray-900" : "bg-white"}`}>
             <Topbar title={chapter ? chapter.Title !== "" ? chapter.Title : chapter.Number : ""} visible={barVisible} />
-            <div className={`${background === "black" ? "bg-gray-900" : "bg-white"}`}>
-                <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
-            </div>
+            <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
             <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} />
         </div>
     )

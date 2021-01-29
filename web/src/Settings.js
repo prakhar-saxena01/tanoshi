@@ -6,7 +6,7 @@ import Navbar from './common/Navbar';
 
 function Settings(props) {
     return (
-        <div className={"main w-full bg-gray-100 dark:bg-gray-900 overflow-auto"}>
+        <div className={"main w-full"}>
             <Topbar>
                 <button onClick={() => navigate(-1)}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>

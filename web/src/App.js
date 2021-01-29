@@ -17,6 +17,15 @@ import SettingSource from './SettingSource';
 import SettingReader from './SettingReader';
 
 function App() {
+  document.body.classList.add('bg-gray-100');
+  document.body.classList.add('dark:bg-gray-900');
+
+  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+  
   return (
     <div className="App">
       <Router>

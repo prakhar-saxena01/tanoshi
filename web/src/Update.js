@@ -2,19 +2,25 @@ import React from 'react';
 import { Link } from '@reach/router';
 
 function Update() {
-    const [update, setUpdate] = React.useState();
+    const [page, setPage] = React.useState(1);
+    const [update, setUpdate] = React.useState([]);
+    const [disableLoadMore, setDisableLoadMore] = React.useState(false);
 
     React.useEffect(() => {
-        if (!update) {
-            fetch(`/api/update`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setUpdate(data);
-                }).catch((e) => {
-                    console.log(e);
-                });
-        }
-    });
+        fetch(`/api/update?page=${page}&limit=10`)
+            .then((response) => {
+                if (response.status === 204) {
+                    setDisableLoadMore(true);
+                    return [];
+                }
+                return response.json();
+            })
+            .then((data) => {
+                setUpdate(u => [...u, ...data]);
+            }).catch((e) => {
+                console.log(e);
+            });
+    }, [page]);
 
     const calculate_days = (at) => {
         let today = Date.now();
@@ -36,17 +42,20 @@ function Update() {
     }
 
     return (
-        <div className={"divide-y divide-gray-100 dark:divide-gray-900"}>
+        <div className={"divide-y divide-gray-100 dark:divide-gray-900 rounded"}>
             {update && update.map((u, i) => (
-                <Link key={i} className={"p-2 flex h-24 bg-white dark:bg-gray-800 shadow"} to={`/chapter/${u.ChapterID}`}>
-                    <img className={"w-16 rounded object-cover"} alt={u.MangaTitle} src={u.CoverURL}></img>
+                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${u.ChapterID}`}>
+                    <img className={"h-24 rounded object-cover"} alt={u.MangaTitle} src={u.CoverURL}></img>
                     <div className={"flex flex-col ml-2"}>
-                        <h1 className={"text-gray-900 dark:text-gray-50 text-left"}>{u.MangaTitle}</h1>
-                        <h2 className={"text-gray-900 dark:text-gray-50 text-left"}>{`${u.ChapterTitle} - ${u.ChapterNumber}`}</h2>
-                        <h2 className={"text-gray-900 dark:text-gray-50 text-left"}>{calculate_days(u.UploadedAt)}</h2>
+                        <h1 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{u.MangaTitle}</h1>
+                        <h2 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{`${u.ChapterTitle} - ${u.ChapterNumber}`}</h2>
+                        <h2 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{calculate_days(u.UploadedAt)}</h2>
                     </div>
                 </Link>
             ))}
+            <button disabled={disableLoadMore} className={"w-full p-2 flex h-10 bg-white dark:bg-gray-800 shadow text-accent hover:bg-gray-300 dark:hover:bg-gray-700 justify-center"} onClick={(e) => setPage(page + 1)}>
+                {disableLoadMore ? "No More" : "Load More"}
+            </button>
         </div>
     )
 }

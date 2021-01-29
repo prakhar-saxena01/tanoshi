@@ -19,7 +19,7 @@ code {
 
 .main {
 padding-top: calc(env(safe-area-inset-top) + theme('spacing.12'));
-height: 100vh;
+min-height: 100vh;
 }
 
 .toggle-checkbox:checked {

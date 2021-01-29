@@ -1,5 +1,4 @@
 import React from 'react';
-import Cover from './common/Cover';
 import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
 
@@ -16,10 +15,8 @@ function Library(props) {
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
 
-    
-
     return (
-        <div className={"main bg-gray-100 dark:bg-gray-900"}>
+        <div className={"main"}>
             <Topbar>
                 <button>Filter</button>
                 <span className={"text-gray-300"}>Library</span>

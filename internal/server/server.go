@@ -87,10 +87,15 @@ func (s *Server) RegisterHandler() {
 	})
 	api.GET("/source/:name", func(c *gin.Context) {
 		name := c.Param("name")
-		filters := c.QueryMap("filters")
+
+		var req SearchSourceRequest
+		if err := c.ShouldBind(&req); err != nil {
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
+			return
+		}
 
 		mangas, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s", name), func() (interface{}, error) {
-			mangas, err := s.sourceHandler.SearchManga(name, filters)
+			mangas, err := s.sourceHandler.SearchManga(name, req.filters)
 			if err != nil {
 				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 				return nil, err
@@ -199,6 +204,12 @@ func (s *Server) RegisterHandler() {
 	})
 
 	api.GET("/library", func(c *gin.Context) {
+		var req SearchLibraryRequest
+		if err := c.ShouldBind(&req); err != nil {
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
+			return
+		}
+
 		mangas, err := s.libraryHandler.GetMangaFromLibrary()
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
@@ -235,9 +246,20 @@ func (s *Server) RegisterHandler() {
 		c.Status(200)
 	})
 	api.GET("/history", func(c *gin.Context) {
-		histories, err := s.historyHandler.GetHistories()
+		var req GetHistoryRequest
+		if err := c.ShouldBind(&req); err != nil {
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
+			return
+		}
+
+		histories, err := s.historyHandler.GetHistories(req.Page, req.Limit)
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+
+		if histories == nil {
+			c.AbortWithStatusJSON(204, []*history.History{})
 			return
 		}
 
@@ -250,9 +272,13 @@ func (s *Server) RegisterHandler() {
 			return
 		}
 
-		page, _ := strconv.ParseInt(c.Query("page"), 10, 64)
+		var req UpdateHistoryRequest
+		if err := c.ShouldBind(&req); err != nil {
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
+			return
+		}
 
-		err := s.historyHandler.UpdateChapterLastPageRead(uint(id), int(page))
+		err := s.historyHandler.UpdateChapterLastPageRead(uint(id), req.Page)
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
 			return
@@ -261,9 +287,20 @@ func (s *Server) RegisterHandler() {
 		c.Status(200)
 	})
 	api.GET("/update", func(c *gin.Context) {
-		updates, err := s.updateHandler.GetUpdates()
+		var req GetUpdateRequest
+		if err := c.ShouldBind(&req); err != nil {
+			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
+			return
+		}
+
+		updates, err := s.updateHandler.GetUpdates(req.Page, req.Limit)
 		if err != nil {
 			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+
+		if updates == nil {
+			c.AbortWithStatusJSON(204, []*update.Update{})
 			return
 		}
 

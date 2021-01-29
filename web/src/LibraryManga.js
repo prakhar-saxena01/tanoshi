@@ -6,7 +6,10 @@ function LibraryManga(props) {
 
     React.useEffect(() => {
         if(mangaList.length === 0) {
-            fetch(`/api/library`)
+            const urlParams = new URLSearchParams(props.location.search);
+            const title = urlParams.get('keyword');
+
+            fetch(`/api/library?title=${title}`)
             .then((response) => response.json())
             .then((data) => {
                 setMangaList([...mangaList, ...data]);
@@ -14,7 +17,7 @@ function LibraryManga(props) {
                 console.log(e);
             });
         }
-    })
+    })    
 
     return (
         <div className={"w-full grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2"}>

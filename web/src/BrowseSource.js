@@ -45,7 +45,7 @@ function BrowseSource(props) {
                         <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite}/>
                     ))}
                 </div>
-                <button className={"w-full text-gray-900 dark:text-gray-50"} onClick={() => setPage(page + 1)}>
+                <button className={"w-full mt-2 p-1 text-accent rounded bg-gray-100 dark:bg-gray-800"} onClick={() => setPage(page + 1)}>
                     Load More
                 </button>
             </div>
