@@ -13,19 +13,10 @@ function Search(props) {
 }
 
 function Library(props) {
-    const [mangaList, setMangaList] = React.useState([]);
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
 
-    React.useEffect(() => {
-        fetch(`/api/library`)
-            .then((response) => response.json())
-            .then((data) => {
-                setMangaList([...mangaList, ...data]);
-            }).catch((e) => {
-                console.log(e);
-            });
-    }, [keyword])
+    
 
     return (
         <div className={"main bg-gray-100 dark:bg-gray-900"}>
@@ -35,15 +26,10 @@ function Library(props) {
                 <button >Search</button>
             </Topbar>
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
-                setMangaList([]);
                 setKeyword(e.target.value);
             }} />}
             <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
-                <div className={"w-full grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2"}>
-                    {mangaList.map((el, index) => (
-                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL}  isFavorite={el.IsFavorite}/>
-                    ))}
-                </div>
+                {props.children}
             </div>
             <Navbar />
         </div>

@@ -2,6 +2,7 @@ import './App.css';
 import 'animate.css'
 import { Router } from "@reach/router";
 import Library from './Library';
+import LibraryManga from './LibraryManga';
 import Browse from './Browse';
 import BrowseSources from './BrowseSources';
 import BrowseSource from './BrowseSource';
@@ -19,20 +20,22 @@ function App() {
   return (
     <div className="App">
       <Router>
-        <Library path="/" />
+        <Library path="/" >
+          <LibraryManga path="/" />
+          <Update path="update" />
+          <History path="history" />
+        </Library>
         <Browse path="browse">
-          <BrowseSources path="/"/>
-          <BrowseSource path="/:sourceName"/>
+          <BrowseSources path="/" />
+          <BrowseSource path="/:sourceName" />
         </Browse>
-        <Update path="update" />
-        <History path="history" />
         <Manga path="manga/:mangaId" />
         <Reader path="chapter/:chapterId" />
         <Settings path="settings">
           <SettingCategories path="/" />
           <SettingReader path="reader" />
           <SettingSources path="source" />
-          <SettingSource path="source/:sourceName"/>
+          <SettingSource path="source/:sourceName" />
         </Settings>
       </Router>
     </div>
