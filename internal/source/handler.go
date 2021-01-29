@@ -17,7 +17,7 @@ func (h *Handler) InstallSource(name string) error {
 }
 
 func (h *Handler) GetSourceList() ([]*Source, error) {
-	return h.sm.List(), nil
+	return h.sm.List()
 }
 
 func (h *Handler) GetSourceDetail(name string) (*Source, error) {

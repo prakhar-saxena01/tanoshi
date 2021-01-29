@@ -2,15 +2,18 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/faldez/tanoshi/internal/history"
 	"github.com/faldez/tanoshi/internal/library"
 	"github.com/faldez/tanoshi/internal/source"
 	"github.com/faldez/tanoshi/internal/update"
-	"github.com/gin-gonic/gin"
 
 	"golang.org/x/sync/singleflight"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
@@ -18,7 +21,7 @@ type Server struct {
 	libraryHandler *library.Handler
 	historyHandler *history.Handler
 	updateHandler  *update.Handler
-	r              *gin.Engine
+	r              *echo.Echo
 	requestGroup   singleflight.Group
 }
 
@@ -26,91 +29,90 @@ func NewServer(sourceHandler *source.Handler,
 	libraryHandler *library.Handler,
 	historyHandler *history.Handler,
 	updateHandler *update.Handler) Server {
-	r := gin.Default()
+	r := echo.New()
 	var requestGroup singleflight.Group
 	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, r, requestGroup}
 }
 
 func (s *Server) RegisterHandler() {
+	s.r.Use(middleware.Logger())
+	s.r.Use(middleware.Recover())
+
 	api := s.r.Group("/api")
 
-	api.GET("/source", func(c *gin.Context) {
+	api.GET("/source", func(c echo.Context) error {
 		var (
 			sourceList []*source.Source
 			err        error
 		)
-		if _, installed := c.GetQuery("installed"); !installed {
-			sourceList, err = s.sourceHandler.GetSourcesFromRemote()
-			if err != nil {
-				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-				return
-			}
-		} else {
-			sourceList, err = s.sourceHandler.GetSourceList()
-			if err != nil {
-				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-				return
-			}
+
+		installed, _ := strconv.ParseBool(c.QueryParam("installed"))
+		sourceList, err = s.sourceHandler.GetSourcesFromRemote()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
 
-		c.JSON(200, sourceList)
+		if installed {
+			var sources []*source.Source
+			for i := range sourceList {
+				if sourceList[i].Installed {
+					sources = append(sources, sourceList[i])
+				}
+			}
+			return c.JSON(http.StatusOK, sources)
+		}
+
+		return c.JSON(http.StatusOK, sourceList)
 	})
-	api.POST("/source/:name/install", func(c *gin.Context) {
+	api.POST("/source/:name/install", func(c echo.Context) error {
 		err := s.sourceHandler.InstallSource(c.Param("name"))
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.Status(200)
+		return c.String(http.StatusOK, "OK")
 	})
-	api.GET("/source/:name/config", func(c *gin.Context) {
+	api.GET("/source/:name/config", func(c echo.Context) error {
 		config, err := s.sourceHandler.GetSourceConfig(c.Param("name"))
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, config)
+		return c.JSON(http.StatusOK, config)
 	})
-	api.PUT("/source/:name/config", func(c *gin.Context) {
-		var config source.Config
-		if err := c.ShouldBindJSON(&config); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+	api.PUT("/source/:name/config", func(c echo.Context) error {
+		config := new(source.Config)
+		if err := c.Bind(config); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
-		err := s.sourceHandler.UpdateSourceConfig(c.Param("name"), &config)
+		err := s.sourceHandler.UpdateSourceConfig(c.Param("name"), config)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, config)
+		return c.JSON(http.StatusOK, config)
 	})
-	api.GET("/source/:name", func(c *gin.Context) {
+	api.GET("/source/:name", func(c echo.Context) error {
 		name := c.Param("name")
 
-		var req SearchSourceRequest
-		if err := c.ShouldBind(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+		req := new(SearchSourceRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		mangas, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s", name), func() (interface{}, error) {
 			mangas, err := s.sourceHandler.SearchManga(name, req.filters)
 			if err != nil {
-				c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-				return nil, err
+				return nil, c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 			}
 			return mangas, nil
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, mangas)
+		return c.JSON(http.StatusOK, mangas)
 	})
-	api.GET("/source/:name/latest", func(c *gin.Context) {
+	api.GET("/source/:name/latest", func(c echo.Context) error {
 		name := c.Param("name")
-		page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
+		page, _ := strconv.ParseInt(c.QueryParam("page"), 10, 64)
 
 		latestManga, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s/latest", name), func() (interface{}, error) {
 			latestManga, err := s.sourceHandler.GetSourceLatestUpdates(name, int(page))
@@ -120,37 +122,33 @@ func (s *Server) RegisterHandler() {
 			return latestManga, nil
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, latestManga)
+		return c.JSON(http.StatusOK, latestManga)
 	})
-	api.GET("/source/:name/detail", func(c *gin.Context) {
+	api.GET("/source/:name/detail", func(c echo.Context) error {
 		name := c.Param("name")
 		source, err := s.sourceHandler.GetSourceDetail(name)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, source)
+		return c.JSON(http.StatusOK, source)
 	})
-	api.POST("/source/:name/login", func(c *gin.Context) {
-		var req LoginRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+	api.POST("/source/:name/login", func(c echo.Context) error {
+		req := new(LoginRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		err := s.sourceHandler.Login(c.Param("name"), req.Username, req.Password, req.TwoFactor, req.Remember)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.Status(200)
+		return c.String(200, "OK")
 	})
-	api.GET("/manga/:id", func(c *gin.Context) {
+	api.GET("/manga/:id", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		includeChapter, _ := strconv.ParseBool(c.DefaultQuery("includeChapter", "false"))
+		includeChapter, _ := strconv.ParseBool(c.QueryParam("includeChapter"))
 
 		manga, err, _ := s.requestGroup.Do(fmt.Sprintf("manga/%d/%v", id, includeChapter), func() (interface{}, error) {
 			manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter)
@@ -162,12 +160,11 @@ func (s *Server) RegisterHandler() {
 		})
 
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, manga)
+		return c.JSON(http.StatusOK, manga)
 	})
-	api.GET("/manga/:id/chapters", func(c *gin.Context) {
+	api.GET("/manga/:id/chapters", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 
 		chapters, err, _ := s.requestGroup.Do(fmt.Sprintf("manga/%d/chapters", id), func() (interface{}, error) {
@@ -179,13 +176,12 @@ func (s *Server) RegisterHandler() {
 			return chapters, nil
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, chapters)
+		return c.JSON(http.StatusOK, chapters)
 	})
 
-	api.GET("/chapter/:id", func(c *gin.Context) {
+	api.GET("/chapter/:id", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 
 		chapter, err, _ := s.requestGroup.Do(fmt.Sprintf("chapter/%d", id), func() (interface{}, error) {
@@ -197,117 +193,101 @@ func (s *Server) RegisterHandler() {
 			return chapter, nil
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, chapter)
+		return c.JSON(http.StatusOK, chapter)
 	})
 
-	api.GET("/library", func(c *gin.Context) {
-		var req SearchLibraryRequest
-		if err := c.ShouldBind(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+	api.GET("/library", func(c echo.Context) error {
+		req := new(SearchLibraryRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		mangas, err := s.libraryHandler.GetMangaFromLibrary()
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.JSON(200, mangas)
+		return c.JSON(http.StatusOK, mangas)
 	})
-	api.POST("/library/manga/:id", func(c *gin.Context) {
-		id, _ := strconv.ParseInt(c.Query("id"), 10, 64)
+	api.POST("/library/manga/:id", func(c echo.Context) error {
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		if id == 0 {
-			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
-			return
+			return c.JSON(http.StatusBadRequest, ErrorMessage{"invalid id"})
 		}
 
 		err := s.libraryHandler.SaveToLibrary(uint(id))
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.Status(200)
+		return c.String(200, "OK")
 	})
-	api.DELETE("/library/manga/:id", func(c *gin.Context) {
+	api.DELETE("/library/manga/:id", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		if id == 0 {
-			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
-			return
+			return c.JSON(http.StatusBadRequest, ErrorMessage{"invalid id"})
 		}
 
 		err := s.libraryHandler.DeleteFromLibrary(uint(id))
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		c.Status(200)
+		return c.String(200, "OK")
 	})
-	api.GET("/history", func(c *gin.Context) {
-		var req GetHistoryRequest
-		if err := c.ShouldBind(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+	api.GET("/history", func(c echo.Context) error {
+		req := new(GetHistoryRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		histories, err := s.historyHandler.GetHistories(req.Page, req.Limit)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
 
 		if histories == nil {
-			c.AbortWithStatusJSON(204, []*history.History{})
-			return
+			return c.JSON(http.StatusNoContent, []*history.History{})
 		}
 
-		c.JSON(200, histories)
+		return c.JSON(http.StatusOK, histories)
 	})
-	api.PUT("/history/chapter/:id", func(c *gin.Context) {
+	api.PUT("/history/chapter/:id", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		if id == 0 {
-			c.AbortWithStatusJSON(400, ErrorMessage{"invalid id"})
-			return
+			return c.JSON(http.StatusBadRequest, ErrorMessage{"invalid id"})
 		}
 
-		var req UpdateHistoryRequest
-		if err := c.ShouldBind(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+		req := new(UpdateHistoryRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		err := s.historyHandler.UpdateChapterLastPageRead(uint(id), req.Page)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
 
-		c.Status(200)
+		return c.String(200, "OK")
 	})
-	api.GET("/update", func(c *gin.Context) {
-		var req GetUpdateRequest
-		if err := c.ShouldBind(&req); err != nil {
-			c.AbortWithStatusJSON(400, ErrorMessage{err.Error()})
-			return
+	api.GET("/update", func(c echo.Context) error {
+		req := new(GetUpdateRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		updates, err := s.updateHandler.GetUpdates(req.Page, req.Limit)
 		if err != nil {
-			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
-			return
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
 
 		if updates == nil {
-			c.AbortWithStatusJSON(204, []*update.Update{})
-			return
+			return c.JSON(http.StatusNoContent, []update.Update{})
 		}
 
-		c.JSON(200, updates)
+		return c.JSON(http.StatusOK, updates)
 	})
 }
 
-func (s *Server) Run(addr ...string) error {
-	return s.r.Run(addr...)
+func (s *Server) Run(addr string) error {
+	return s.r.Start(addr)
 }

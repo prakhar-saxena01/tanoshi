@@ -18,14 +18,14 @@ import (
 
 type Source struct {
 	gorm.Model
-	Name       string `gorm:"unique_index"`
-	Contents   []byte `json:"-"`
-	Config     Config `json:"-"`
-	Installed  bool   `gorm:"-"`
-	Version    string `gorm:"-"`
-	URL        string `gorm:"-"`
-	Script     string `gorm:"-"`
-	Icon       string `gorm:"-"`
+	Name       string  `gorm:"unique_index"`
+	Contents   []byte  `json:"-"`
+	Config     *Config `json:"-"`
+	Installed  bool    `gorm:"-"`
+	Version    string  `gorm:"-"`
+	URL        string  `gorm:"-"`
+	Script     string  `gorm:"-"`
+	Icon       string  `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
 }
@@ -33,9 +33,11 @@ type Source struct {
 // Initialize initialize source from specified path
 func (s *Source) Initialize() error {
 	s.l = lua.NewState()
-	s.Config = Config{
-		Header:   make(http.Header),
-		Language: make(map[string]bool),
+	if s.Config == nil {
+		s.Config = &Config{
+			Header:   make(http.Header),
+			Language: make(map[string]bool),
+		}
 	}
 	s.httpClient = &http.Client{}
 

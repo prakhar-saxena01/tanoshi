@@ -6,7 +6,7 @@ function BrowseSources() {
     const [sourceList, setSourceList] = React.useState();
 
     React.useEffect(() => {
-        fetch(`/api/source`)
+        fetch(`/api/source?installed=1`)
             .then((response) => response.json())
             .then((data) => {
                 setSourceList(data);

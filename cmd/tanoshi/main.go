@@ -57,5 +57,5 @@ func main() {
 
 	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler)
 	srv.RegisterHandler()
-	srv.Run(fmt.Sprintf(":%s", cfg.Port))
+	log.Fatalln(srv.Run(fmt.Sprintf(":%s", cfg.Port)))
 }

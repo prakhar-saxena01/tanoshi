@@ -89,12 +89,16 @@ func (sm *Manager) InstallSource(name string) error {
 	return nil
 }
 
-func (sm *Manager) List() []*Source {
+func (sm *Manager) List() ([]*Source, error) {
+	sourcesMap, err := sm.repo.GetSources()
+	if err != nil {
+		return nil, err
+	}
 	var sources []*Source
-	for _, v := range sm.sources {
+	for _, v := range sourcesMap {
 		sources = append(sources, v)
 	}
-	return sources
+	return sources, nil
 }
 
 func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
@@ -115,7 +119,7 @@ func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
 	}
 
 	c.Header = s.Config.Header
-	s.Config = *c
+	s.Config = c
 	return sm.repo.SaveSourceConfig(s)
 }
 
