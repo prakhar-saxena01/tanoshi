@@ -243,6 +243,10 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 	return chapter, err
 }
 
+func (sm *Manager) UpdateChapterLastPageRead(id uint, page int) error {
+	return sm.repo.UpdateChapterLastPageRead(id, page)
+}
+
 func (sm *Manager) Login(name, username, password, twoFactor string, remember bool) error {
 	s, ok := sm.sources[name]
 	if !ok {

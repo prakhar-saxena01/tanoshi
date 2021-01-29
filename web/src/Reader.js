@@ -43,6 +43,9 @@ function Bottombar(props) {
 }
 
 function ReaderWrapper(props) {
+    const el = React.useRef();
+    const refs = React.useRef({});
+
     const nextPage = (val) => {
         if (props.currentPage + val < props.pages.length) {
             props.setCurrentPage(props.currentPage + 2)
@@ -54,25 +57,35 @@ function ReaderWrapper(props) {
             props.setCurrentPage(props.currentPage - 2)
         }
     }
-    
-    const refs = React.useRef({});
-    
-    if (props.readerMode === "continous") {
-        const onscroll = (e) => {
-            e.preventDefault();
 
-            let page = 0;
-            for (let i = 0; i < props.pages.length; i++) {
-                if (e.target.scrollTop > refs.current[i].offsetTop) {
-                    page = i;
-                }
+    const onscroll = (e) => {
+        e.preventDefault();
+
+        let page = 0;
+        for (let i = 0; i < props.pages.length; i++) {
+            if (e.target.scrollTop > refs.current[i].offsetTop) {
+                page = i;
+            } else {
+                break;
             }
-            props.setCurrentPage(page);
         }
+        props.setCurrentPage(page);
+    }
+
+    const scrollto = (index) => {
+        if (index !== props.currentPage) {
+            return
+        }
+        if (refs && refs.current[index]) {
+            refs.current[index].scrollIntoView();
+        }
+    }
+
+    if (props.readerMode === "continous") {
         return (
-            <div className={"h-screen overflow-y-auto"} onScroll={onscroll}>
+            <div ref={el} className={"h-screen overflow-y-auto"} onScroll={onscroll}>
                 {props.pages.map((p, index) => (
-                    <img ref={(element) => refs.current[index] = element} className={"page my-2 mx-auto"} key={index} src={p.URL} alt={index}></img>
+                    <img ref={(el) => refs.current[index] = el} className={"page my-2 mx-auto"} key={index} src={p.URL} alt={index} onLoad={() => scrollto(index)}></img>
                 ))}
             </div>
         )
@@ -119,24 +132,33 @@ function Reader(props) {
     const [direction, setDirection] = React.useState();
     const [background, setBackground] = React.useState();
 
-    React.useState(() => {
+    React.useEffect(() => {
         setReaderMode(localStorage.getItem("readerMode"));
         setDisplayMode(localStorage.getItem("displayMode"));
         setDirection(localStorage.getItem("direction"));
         setBackground(localStorage.getItem("background"));
-    })
 
-    React.useState(() => {
         if (!chapter) {
             fetch(`/api/chapter/${props.chapterId}`)
                 .then((response) => response.json())
                 .then((data) => {
                     setChapter(data);
+                    setCurrentPage(data.LastPageRead);
                 }).catch((e) => {
                     console.log(e);
                 });
         }
     })
+
+    React.useEffect(() => {
+        if (currentPage > 0) {
+            fetch(`/api/chapter/${props.chapterId}/read?page=${currentPage}`, { method: "PUT" })
+                .then((response) => response)
+                .catch((e) => {
+                    console.log(e);
+                });
+        }
+    }, [props.chapterId, currentPage])
 
     return (
         <div>

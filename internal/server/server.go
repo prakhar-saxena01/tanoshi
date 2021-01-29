@@ -206,9 +206,16 @@ func (s *Server) RegisterHandler() {
 		c.JSON(200, chapter)
 	})
 	api.PUT("/chapter/:id/read", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+		page, _ := strconv.ParseInt(c.Query("page"), 10, 64)
+
+		err := s.sourceHandler.UpdateChapterLastPageRead(uint(id), int(page))
+		if err != nil {
+			c.AbortWithStatusJSON(500, ErrorMessage{err.Error()})
+			return
+		}
+
+		c.Status(200)
 	})
 	api.GET("/library", func(c *gin.Context) {
 		mangas, err := s.sourceHandler.GetFavoriteManga()

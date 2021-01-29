@@ -52,6 +52,10 @@ func (h *Handler) GetChapter(id uint) (*Chapter, error) {
 	return h.sm.GetChapter(id)
 }
 
+func (h *Handler) UpdateChapterLastPageRead(id uint, page int) error {
+	return h.sm.UpdateChapterLastPageRead(id, page)
+}
+
 func (h *Handler) Login(name, username, password, twoFactor string, remember bool) error {
 	return h.sm.Login(name, username, password, twoFactor, remember)
 }
