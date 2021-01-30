@@ -1,6 +1,7 @@
 import React from 'react';
 import Cover from './common/Cover';
 import Topbar from './common/Topbar';
+import {useMatch} from '@reach/router';
 
 function Search(props) {
     return (
@@ -44,9 +45,18 @@ function BrowseSource(props) {
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
 
+    const isLatest = useMatch("/browse/:sourceName/latest");
+
     React.useEffect(() => {
         setLoading(true);
-        fetch(`/api/source/${props.sourceName.toLowerCase()}?title=${keyword}&page=${page}`)
+
+        let url = `/api/source/${props.sourceName.toLowerCase()}`
+        if (isLatest) {
+            url += "/latest"
+        } else {
+            url += `?title=${keyword}&page=${page}`
+        }
+        fetch(url)
             .then((response) => response.json())
             .then((data) => {
                 setMangaList(m => [...m, ...data]);
@@ -54,7 +64,7 @@ function BrowseSource(props) {
             }).catch((e) => {
                 console.log(e);
             });
-    }, [props.sourceName, keyword, page])
+    }, [props.sourceName, keyword, page, isLatest])
 
     if (mangaList.length === 0) {
         return (

@@ -14,7 +14,7 @@ import Settings from './Settings';
 import SettingCategories from './SettingCategories';
 import SettingSources from './SettingSources';
 import SettingSource from './SettingSource';
-import SettingReader from './SettingReader';
+import ReaderSetting from './common/ReaderSetting';
 
 function App() {
   document.body.classList.add('bg-gray-100');
@@ -36,13 +36,14 @@ function App() {
         </Library>
         <Browse path="browse">
           <BrowseSources path="/" />
-          <BrowseSource path="/:sourceName" />
+          <BrowseSource path=":sourceName" />
+          <BrowseSource path=":sourceName/latest" />
         </Browse>
         <Manga path="manga/:mangaId" />
         <Reader path="chapter/:chapterId" />
         <Settings path="settings">
           <SettingCategories path="/" />
-          <SettingReader path="reader" />
+          <ReaderSetting path="reader" />
           <SettingSources path="source" />
           <SettingSource path="source/:sourceName" />
         </Settings>

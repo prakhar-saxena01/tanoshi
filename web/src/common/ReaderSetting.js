@@ -24,30 +24,52 @@ function Input(props) {
     )
 }
 
-function SettingReader(props) {
+function ReaderSetting(props) {
     const [readerMode, setReaderMode] = React.useState();
     const [displayMode, setDisplayMode] = React.useState();
     const [direction, setDirection] = React.useState();
     const [background, setBackground] = React.useState();
 
+    
+    var settingPath = props.mangaId ? `/${props.mangaId}` : "";
+    const getItem = (key) => {
+        let setting = localStorage.getItem(`${key}${settingPath}`);
+        if (!setting) {
+            setting = localStorage.getItem(`${key}`);
+        }
+        return setting
+    }
+
     React.useState(() => {
-        setReaderMode(localStorage.getItem("readerMode"));
-        setDisplayMode(localStorage.getItem("displayMode"));
-        setDirection(localStorage.getItem("direction"));
-        setBackground(localStorage.getItem("background"));
+        setReaderMode(getItem(`readerMode`));
+        setDisplayMode(getItem(`displayMode`));
+        setDirection(getItem(`direction`));
+        setBackground(getItem(`background`));
     })
     React.useEffect(() => {
-        localStorage.setItem("readerMode", readerMode);
-    }, [readerMode])
+        localStorage.setItem(`readerMode${settingPath}`, readerMode);
+        if(props.setReaderMode) {
+            props.setReaderMode(readerMode);
+        }
+    }, [settingPath, readerMode])
     React.useEffect(() => {
-        localStorage.setItem("displayMode", displayMode);
-    }, [displayMode])
+        localStorage.setItem(`displayMode${settingPath}`, displayMode);
+        if(props.setDisplayMode) {
+            props.setDisplayMode(displayMode);
+        }
+    }, [settingPath, displayMode])
     React.useEffect(() => {
-        localStorage.setItem("direction", direction);
-    }, [direction])
+        localStorage.setItem(`direction${settingPath}`, direction);
+        if(props.setDirection) {
+            props.setDirection(direction);
+        }
+    }, [settingPath, direction])
     React.useEffect(() => {
-        localStorage.setItem("background", background);
-    }, [background])
+        localStorage.setItem(`background${settingPath}`, background);
+        if(props.setBackground) {
+            props.setBackground(background);
+        }
+    }, [settingPath, background])
     
     return (
         <div className={"p-2"}>
@@ -88,5 +110,5 @@ function SettingReader(props) {
     )
 }
 
-export default SettingReader;
+export default ReaderSetting;
 

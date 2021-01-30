@@ -156,11 +156,11 @@ function Manga(props) {
                     <div className={"flex flex-col w-full divide-y-2 dark:divide-gray-900 divide-gray-100"}>
                         <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Chapters</span>
                         {manga && manga.Chapters.map(ch => (
-                            <Link key={ch.ID} className={`flex inline-flex hover:bg-gray-200 dark:hover:bg-gray-700 p-2 ${ch.ReadAt ? "opacity-25" : "opacity-100"}`} to={`/chapter/${ch.ID}`}>
+                            <Link key={ch.ID} className={`flex inline-flex hover:bg-gray-200 dark:hover:bg-gray-700 p-2 ${ch.ReadAt ? "opacity-25" : "opacity-100"}`} to={`/chapter/${ch.ID}`} state={{mangaTitle: manga.Title}}>
                                 <div className={"flex justify-between items-center w-full text-gray-900 dark:text-gray-300"}>
                                     <div className={"flex flex-col"}>
-                                        <span className={"text-md font-semibold text-left"}>{ch.Title !== "" ? ch.Title : ch.Number}</span>
-                                        <span className={"text-sm text-left"}>{ch.UploadedAt}</span>
+                                        <span className={"text-md font-semibold text-left"}>{ch.Title !== "" ? `Ch.${ch.Number} ${ch.Title}` : ch.Number}</span>
+                                        <span className={"text-sm text-left"}>{new Date(ch.UploadedAt).toLocaleDateString()}</span>
                                     </div>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6 my-2"}>
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

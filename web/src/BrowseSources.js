@@ -24,15 +24,16 @@ function BrowseSources() {
             </Topbar>
                 {sourceList.map((s, index) => (
                     <div key={index} className={"bg-white dark:bg-gray-700 rounded mx-2 p-2 shadow"}>
-                        <Link className={"flex justify-between"} to={`/browse/${s.Name}`}>
-                            <div className={"inline-flex"}>
+                        <div className={"flex justify-between"}>
+                            <Link className={"inline-flex w-full"} to={`/browse/${s.Name}`}>
                                 <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
                                 <div>
                                     <div className={"text-gray-900 dark:text-gray-50 text-left"}>{s.Name}</div>
                                     <div className={"text-gray-800 dark:text-gray-200 text-sm text-left"}>{s.Version}</div>
                                 </div>
-                            </div>
-                        </Link>
+                            </Link>
+                            <Link className={"text-accent hover:bg-gray-300 dark:hover:bg-gray-700 rounded h-12 p-2"} to={`/browse/${s.Name}/latest`}>Latest</Link>
+                        </div>
                     </div>
                 ))}
         </div>
