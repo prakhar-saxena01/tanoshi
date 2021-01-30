@@ -51,8 +51,5 @@ module.exports = {
         divideColor: ['dark']
     },
     plugins: [],
-    darkMode: 'media',
-    experimental: {
-        darkModeVariant: true,
-    }
+    darkMode: 'media'
 }

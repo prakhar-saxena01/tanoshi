@@ -9,7 +9,7 @@ var w webview.WebView
 func init() {
 	debug := true
 	w = webview.New(debug)
-	w.SetTitle("Minimal webview example")
+	w.SetTitle("Tanoshi")
 	w.SetSize(800, 600, webview.HintNone)
 }
 
