@@ -11,21 +11,56 @@ function Search(props) {
     )
 }
 
+function Skeleton(props) {
+    return (
+        <div>
+            <Topbar>
+                <button>Filter</button>
+                <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
+                <button >Search</button>
+            </Topbar>
+            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
+                <div className={`animate-tw-pulse w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 function BrowseSource(props) {
+    const [isLoading, setLoading] = React.useState(false);
     const [mangaList, setMangaList] = React.useState([]);
     const [page, setPage] = React.useState(1);
     const [isSearch, setSearch] = React.useState(false);
     const [keyword, setKeyword] = React.useState("");
 
     React.useEffect(() => {
+        setLoading(true);
         fetch(`/api/source/${props.sourceName.toLowerCase()}?title=${keyword}&page=${page}`)
             .then((response) => response.json())
             .then((data) => {
-                setMangaList([...mangaList, ...data]);
+                setMangaList(m => [...m, ...data]);
+                setLoading(false);
             }).catch((e) => {
                 console.log(e);
             });
-    }, [keyword, page])
+    }, [props.sourceName, keyword, page])
+
+    if (mangaList.length === 0) {
+        return (
+            <Skeleton sourceName={props.sourceName} />
+        )
+    }
 
     return (
         <div>
@@ -40,13 +75,13 @@ function BrowseSource(props) {
                 setKeyword(e.target.value);
             }} />}
             <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
-                <div className={"w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"}>
+                <div className={`w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
                     {mangaList.map((el, index) => (
-                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite}/>
+                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                     ))}
                 </div>
-                <button className={"w-full mt-2 p-1 text-accent rounded bg-gray-100 dark:bg-gray-800"} onClick={() => setPage(page + 1)}>
-                    Load More
+                <button disabled={isLoading} className={"w-full mt-2 p-1 text-accent rounded bg-gray-100 dark:bg-gray-800"} onClick={() => setPage(page + 1)}>
+                    {isLoading ? "Loading..." : "Load More"}
                 </button>
             </div>
         </div>
