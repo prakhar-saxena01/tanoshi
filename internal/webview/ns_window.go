@@ -17,6 +17,6 @@ func (self *NSWindow) Center() {
 }
 
 func init() {
-	window := &NSWindow{w.w.Window()}
+	window := &NSWindow{w.Window()}
 	window.Center()
 }
