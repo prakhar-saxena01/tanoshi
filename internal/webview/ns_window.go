@@ -1,4 +1,4 @@
-// +build darwin
+// +build desktop,darwin
 
 package webview
 
