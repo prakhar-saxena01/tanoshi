@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	lua "github.com/yuin/gopher-lua"
 	"gorm.io/gorm"
 )
 
@@ -102,15 +101,7 @@ type SourceResponse struct {
 	Body   string
 }
 
-type Filters map[string]string
-
-func (f *Filters) ToLTable() *lua.LTable {
-	if f == nil {
-		return nil
-	}
-	tbl := &lua.LTable{}
-	for k, v := range *f {
-		tbl.RawSetString(k, lua.LString(v))
-	}
-	return tbl
+type Filter struct {
+	Title string
+	Page  int
 }

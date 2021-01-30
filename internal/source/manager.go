@@ -146,7 +146,7 @@ func (sm *Manager) GetLatestUpdates(name string, page int) ([]*Manga, error) {
 	return mangas, nil
 }
 
-func (sm *Manager) SearchManga(name string, filter Filters) ([]*Manga, error) {
+func (sm *Manager) SearchManga(name string, filter Filter) ([]*Manga, error) {
 	s, ok := sm.sources[name]
 	if !ok {
 		return nil, errors.New("No source")

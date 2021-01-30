@@ -18,7 +18,7 @@ function BrowseSource(props) {
     const [keyword, setKeyword] = React.useState("");
 
     React.useEffect(() => {
-        fetch(`/api/source/${props.sourceName.toLowerCase()}?filters[title]=${keyword}&filters[p]=${page}`)
+        fetch(`/api/source/${props.sourceName.toLowerCase()}?title=${keyword}&page=${page}`)
             .then((response) => response.json())
             .then((data) => {
                 setMangaList([...mangaList, ...data]);

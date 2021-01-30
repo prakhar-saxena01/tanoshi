@@ -36,7 +36,7 @@ func (h *Handler) GetSourceLatestUpdates(name string, page int) ([]*Manga, error
 	return h.sm.GetLatestUpdates(name, page)
 }
 
-func (h *Handler) SearchManga(name string, filter map[string]string) ([]*Manga, error) {
+func (h *Handler) SearchManga(name string, filter Filter) ([]*Manga, error) {
 	return h.sm.SearchManga(name, filter)
 }
 

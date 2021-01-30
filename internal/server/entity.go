@@ -15,7 +15,8 @@ type LoginRequest struct {
 }
 
 type SearchSourceRequest struct {
-	filters map[string]string `form:"filters"`
+	Title string `form:"title"`
+	Page  int    `form:"page"`
 }
 
 type GetHistoryRequest struct {

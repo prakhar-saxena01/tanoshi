@@ -22,7 +22,7 @@ function Manga(props) {
 
     const setFavorite = (val) => {
         fetch(`/api/library/manga/${props.mangaId}`, {
-                method: val ? "PUT" : "DELETE"
+                method: val ? "POST" : "DELETE"
             })
             .then((response) => setIsFavorite(val))
             .catch((e) => {

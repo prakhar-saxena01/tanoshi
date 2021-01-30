@@ -102,7 +102,10 @@ func (s *Server) RegisterHandler() {
 		}
 
 		mangas, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s", name), func() (interface{}, error) {
-			mangas, err := s.sourceHandler.SearchManga(name, req.filters)
+			mangas, err := s.sourceHandler.SearchManga(name, source.Filter{
+				Title: req.Title,
+				Page:  req.Page,
+			})
 			if err != nil {
 				return nil, c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 			}

@@ -363,8 +363,8 @@ func (s *Source) Login(username, password, twoFactor string, remember bool) erro
 	return nil
 }
 
-func (s *Source) fetchMangaRequest(filter Filters) (*SourceResponse, error) {
-	if err := s.callLuaFunc("fetch_manga_request", filter.ToLTable()); err != nil {
+func (s *Source) fetchMangaRequest(filter Filter) (*SourceResponse, error) {
+	if err := s.callLuaFunc("fetch_manga_request", luar.New(s.l, filter)); err != nil {
 		return nil, err
 	}
 
@@ -401,7 +401,7 @@ func (s *Source) fetchManga(body *string) ([]*Manga, error) {
 	return manga, nil
 }
 
-func (s *Source) FetchManga(filter Filters) ([]*Manga, error) {
+func (s *Source) FetchManga(filter Filter) ([]*Manga, error) {
 	res, err := s.fetchMangaRequest(filter)
 	if err != nil {
 		return nil, err
