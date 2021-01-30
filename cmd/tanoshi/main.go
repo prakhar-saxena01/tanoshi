@@ -14,7 +14,10 @@ import (
 	"github.com/faldez/tanoshi/internal/server"
 	"github.com/faldez/tanoshi/internal/source"
 	"github.com/faldez/tanoshi/internal/update"
+	"github.com/faldez/tanoshi/internal/webview"
 )
+
+var desktop bool
 
 func main() {
 	homeDir, err := os.UserHomeDir()
@@ -66,5 +69,16 @@ func main() {
 
 	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler, box)
 	srv.RegisterHandler()
-	log.Fatalln(srv.Run(fmt.Sprintf(":%s", cfg.Port)))
+	if !desktop {
+		err := srv.Run(fmt.Sprintf(":%s", cfg.Port))
+		log.Fatalln(err)
+	} else {
+		go func() {
+			err := srv.Run(fmt.Sprintf(":%s", cfg.Port))
+			log.Fatalln(err)
+		}()
+
+		w := webview.NewWebview()
+		w.Run()
+	}
 }

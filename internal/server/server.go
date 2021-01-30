@@ -298,5 +298,6 @@ func (s *Server) RegisterHandler() {
 }
 
 func (s *Server) Run(addr string) error {
+	defer s.r.Close()
 	return s.r.Start(addr)
 }
