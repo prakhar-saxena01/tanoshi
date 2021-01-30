@@ -3,7 +3,7 @@ import { Link } from "@reach/router";
 import Topbar from './common/Topbar';
 
 function BrowseSources() {
-    const [sourceList, setSourceList] = React.useState();
+    const [sourceList, setSourceList] = React.useState([]);
 
     React.useEffect(() => {
         fetch(`/api/source?installed=1`)
@@ -22,7 +22,7 @@ function BrowseSources() {
                 <span className={"text-gray-300"}>Browse</span>
                 <span></span>
             </Topbar>
-                {sourceList && sourceList.map((s, index) => (
+                {sourceList.map((s, index) => (
                     <div key={index} className={"bg-white dark:bg-gray-700 rounded mx-2 p-2 shadow"}>
                         <Link className={"flex justify-between"} to={`/browse/${s.Name}`}>
                             <div className={"inline-flex"}>

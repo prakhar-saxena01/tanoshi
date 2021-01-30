@@ -24,7 +24,6 @@ type Source struct {
 	Installed  bool    `gorm:"-"`
 	Version    string  `gorm:"-"`
 	URL        string  `gorm:"-"`
-	Script     string  `gorm:"-"`
 	Icon       string  `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
@@ -92,10 +91,11 @@ func (s *Source) getLanguageOptions() error {
 		return err
 	}
 
-	s.Config.Language = make(map[string]bool)
 	tbl := s.l.CheckTable(1)
 	tbl.ForEach(func(_, v lua.LValue) {
-		s.Config.Language[v.String()] = true
+		if _, ok := s.Config.Language[v.String()]; !ok {
+			s.Config.Language[v.String()] = true
+		}
 	})
 
 	s.l.Pop(1)

@@ -8,6 +8,7 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/faldez/tanoshi/internal/history"
 	"github.com/faldez/tanoshi/internal/library"
+	"github.com/faldez/tanoshi/internal/proxy"
 	"github.com/faldez/tanoshi/internal/source"
 	"github.com/faldez/tanoshi/internal/update"
 
@@ -22,6 +23,7 @@ type Server struct {
 	libraryHandler *library.Handler
 	historyHandler *history.Handler
 	updateHandler  *update.Handler
+	proxy          *proxy.Proxy
 	r              *echo.Echo
 	requestGroup   singleflight.Group
 	box            *rice.Box
@@ -31,10 +33,11 @@ func NewServer(sourceHandler *source.Handler,
 	libraryHandler *library.Handler,
 	historyHandler *history.Handler,
 	updateHandler *update.Handler,
+	proxy *proxy.Proxy,
 	box *rice.Box) Server {
 	r := echo.New()
 	var requestGroup singleflight.Group
-	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, r, requestGroup, box}
+	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, proxy, r, requestGroup, box}
 }
 
 func (s *Server) RegisterHandler() {
@@ -292,12 +295,26 @@ func (s *Server) RegisterHandler() {
 
 		return c.JSON(http.StatusOK, updates)
 	})
+	api.GET("/proxy", func(c echo.Context) error {
+		req := new(ProxyRequest)
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
+		}
+
+		data, contentType, err := s.proxy.Get(req.URL)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
+		}
+		c.Response().Header().Add("Cache-Control", "max-age=31536000")
+		return c.Blob(http.StatusOK, contentType, data)
+	})
 
 	assetHandler := http.FileServer(s.box.HTTPBox())
-	s.r.GET("/*", func(c echo.Context) error {
-		assetHandler.ServeHTTP(c.Response().Writer, c.Request())
-		return nil
-	})
+	s.r.GET("/", echo.WrapHandler(assetHandler))
+
+	// servers other static files
+	s.r.GET("/static/*", echo.WrapHandler(assetHandler))
+
 }
 
 func (s *Server) Run(addr string) error {

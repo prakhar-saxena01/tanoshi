@@ -42,7 +42,29 @@ func (r *Repository) SaveSource(s *Source) error {
 }
 
 func (r *Repository) SaveSourceConfig(s *Source) error {
-	return r.db.Model(s).Update("config", &s.Config).Error
+	langs := []string{}
+	for k, v := range s.Config.Language {
+		if v {
+			langs = append(langs, k)
+		}
+	}
+	tx := r.db.Begin()
+	if err := tx.Model(s).Update("config", &s.Config).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Delete(&Chapter{}, "source = ? AND language NOT IN ?", s.Name, langs).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Table("chapters").Where("language IN ?", langs).Update("deleted_at", nil).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func (r *Repository) SaveManga(m *Manga) (*Manga, error) {

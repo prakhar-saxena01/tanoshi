@@ -20,7 +20,6 @@ type Config struct {
 	Language map[string]bool
 }
 
-// Scan scan value into Jsonb, implements sql.Scanner interface
 func (c *Config) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
@@ -41,7 +40,6 @@ func (c *Config) Scan(value interface{}) error {
 	return nil
 }
 
-// Value return json value, implement driver.Valuer interface
 func (c Config) Value() (driver.Value, error) {
 	return json.Marshal(c)
 }

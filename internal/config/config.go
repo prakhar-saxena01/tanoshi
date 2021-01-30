@@ -22,7 +22,7 @@ func defaultConfig(path string) Config {
 
 	return Config{
 		Port:        "80",
-		DatabaseURL: "sqlite://" + filepath.Dir(path) + "/kumo.db",
+		DatabaseURL: "sqlite://" + filepath.Dir(path) + "/tanoshi.db",
 	}
 }
 

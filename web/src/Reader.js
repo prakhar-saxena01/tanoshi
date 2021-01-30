@@ -85,7 +85,7 @@ function ReaderWrapper(props) {
         return (
             <div ref={el} className={"h-screen overflow-y-auto"} onScroll={onscroll}>
                 {props.pages.map((p, index) => (
-                    <img ref={(el) => refs.current[index] = el} className={"page my-2 mx-auto"} key={index} src={p.URL} alt={index} onLoad={() => scrollto(index)}></img>
+                    <img ref={(el) => refs.current[index] = el} className={"page my-2 mx-auto"} key={index} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></img>
                 ))}
             </div>
         )
@@ -97,7 +97,7 @@ function ReaderWrapper(props) {
                     <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(1)}></div>
                     {props.pages.map((p, index) => (
-                        <img className={`h-auto md:h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={p.URL} alt={index}></img>
+                        <img className={`h-auto md:h-screen ${props.currentPage !== index ? "hidden" : "block"}`} key={index} src={`/api/proxy?url=${p.URL}`} alt={index}></img>
                     ))}
                 </div>
             )
@@ -107,9 +107,9 @@ function ReaderWrapper(props) {
                     <div className={"h-screen w-1/3 cursor-pointer fixed left-0"} onClick={() => prevPage(2)}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed inset-x-0 mx-auto"} onClick={() => props.onHideBar()}></div>
                     <div className={"h-screen w-1/3 cursor-pointer fixed right-0"} onClick={() => nextPage(2)}></div>
-                    <div className={`flex justify-center overflow-x-auto ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
+                    <div className={`w-screen flex justify-center overflow-x-auto ${props.direction === "righttoleft" ? "flex-row-reverse" : "flex-row"}`}>
                         {props.pages.map((p, index) => (
-                            <img className={`object-contain h-screen w-1/2 ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={p.URL} alt={index}></img>
+                            <img className={`object-contain h-screen max-w-1/2 ${index === props.currentPage || index === props.currentPage + 1 ? "block" : "hidden"}`} key={index} src={`/api/proxy?url=${p.URL}`} alt={index}></img>
                         ))}
                     </div>
                 </div>
@@ -133,10 +133,33 @@ function Reader(props) {
     const [background, setBackground] = React.useState();
 
     React.useEffect(() => {
-        setReaderMode(localStorage.getItem("readerMode"));
-        setDisplayMode(localStorage.getItem("displayMode"));
-        setDirection(localStorage.getItem("direction"));
-        setBackground(localStorage.getItem("background"));
+        let readerMode = localStorage.getItem("readerMode");
+        if (readerMode === "") {
+            readerMode = "paged";
+            localStorage.setItem("readerMode", readerMode);
+        }
+        setReaderMode(readerMode);
+
+        let displayMode = localStorage.getItem("displayMode");
+        if (displayMode === "") {
+            displayMode = "single";
+            localStorage.setItem("displayMode", displayMode);
+        }
+        setDisplayMode(displayMode);
+
+        let direction = localStorage.getItem("direction");
+        if (direction === "") {
+            direction = "lefttoright";
+            localStorage.setItem("direction", direction);
+        }
+        setDirection(direction);
+
+        let background = localStorage.getItem("background");
+        if (background === "") {
+            background = "white";
+            localStorage.setItem("background", background);
+        }
+        setBackground(background);
 
         if (!chapter) {
             fetch(`/api/chapter/${props.chapterId}`)

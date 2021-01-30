@@ -11,6 +11,7 @@ import (
 	"github.com/faldez/tanoshi/internal/database"
 	"github.com/faldez/tanoshi/internal/history"
 	"github.com/faldez/tanoshi/internal/library"
+	"github.com/faldez/tanoshi/internal/proxy"
 	"github.com/faldez/tanoshi/internal/server"
 	"github.com/faldez/tanoshi/internal/source"
 	"github.com/faldez/tanoshi/internal/update"
@@ -59,6 +60,8 @@ func main() {
 	historyHandler := history.NewHandler(historyRepo)
 	updateHandler := update.NewHandler(updateRepo)
 
+	proxy := proxy.NewProxy()
+
 	conf := rice.Config{
 		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
 	}
@@ -67,7 +70,7 @@ func main() {
 		log.Fatalf("error opening rice.Box: %s\n", err)
 	}
 
-	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler, box)
+	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler, proxy, box)
 	srv.RegisterHandler()
 	if !desktop {
 		err := srv.Run(fmt.Sprintf(":%s", cfg.Port))

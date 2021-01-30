@@ -35,3 +35,7 @@ type SearchLibraryRequest struct {
 type GetUpdateRequest struct {
 	Pagination
 }
+
+type ProxyRequest struct {
+	URL string `form:"url"`
+}

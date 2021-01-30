@@ -66,7 +66,7 @@ function Cover(props) {
 
     return (
         <button className={"cursor-pointer relative rounded-md pb-7/5 shadow bg-gray-900"} to={`/manga/${props.id}`} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
-            <img className={`absolute w-full h-full object-cover rounded-md ${favorite && browseMatch ? "opacity-25": "opacity-100"}`} src={props.coverUrl} alt=""></img>
+            <img className={`absolute w-full h-full object-cover rounded-md ${favorite && browseMatch ? "opacity-25": "opacity-100"}`} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
             <span className={"absolute left-0 bottom-0 sm:text-sm text-xs bg-gradient-to-t from-gray-900 to-transparent w-full opacity-75 text-gray-50 px-1 pb-1 pt-4 truncate rounded-b-md"}>
                 {props.title}
             </span>

@@ -36,6 +36,9 @@ module.exports = {
             },
             gridTemplateColumns: {
                 '16': 'repeat(16, minmax(0, 1fr))',
+            },
+            maxWidth: {
+                '1/2': '50%',
             }
         },
         container: {
