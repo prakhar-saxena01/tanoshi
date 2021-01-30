@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/faldez/tanoshi/internal/config"
 	"github.com/faldez/tanoshi/internal/database"
 	"github.com/faldez/tanoshi/internal/history"
@@ -55,7 +56,15 @@ func main() {
 	historyHandler := history.NewHandler(historyRepo)
 	updateHandler := update.NewHandler(updateRepo)
 
-	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler)
+	conf := rice.Config{
+		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
+	}
+	box, err := conf.FindBox("../../web/build")
+	if err != nil {
+		log.Fatalf("error opening rice.Box: %s\n", err)
+	}
+
+	srv := server.NewServer(sourceHandler, libraryHandler, historyHandler, updateHandler, box)
 	srv.RegisterHandler()
 	log.Fatalln(srv.Run(fmt.Sprintf(":%s", cfg.Port)))
 }

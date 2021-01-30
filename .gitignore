@@ -7,3 +7,4 @@ mangas/
 *.db
 node_modules/
 web/.eslintcache
+cmd/tanoshi/rice-box.go

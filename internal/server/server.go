@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/faldez/tanoshi/internal/history"
 	"github.com/faldez/tanoshi/internal/library"
 	"github.com/faldez/tanoshi/internal/source"
@@ -23,15 +24,17 @@ type Server struct {
 	updateHandler  *update.Handler
 	r              *echo.Echo
 	requestGroup   singleflight.Group
+	box            *rice.Box
 }
 
 func NewServer(sourceHandler *source.Handler,
 	libraryHandler *library.Handler,
 	historyHandler *history.Handler,
-	updateHandler *update.Handler) Server {
+	updateHandler *update.Handler,
+	box *rice.Box) Server {
 	r := echo.New()
 	var requestGroup singleflight.Group
-	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, r, requestGroup}
+	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, r, requestGroup, box}
 }
 
 func (s *Server) RegisterHandler() {
@@ -285,6 +288,12 @@ func (s *Server) RegisterHandler() {
 		}
 
 		return c.JSON(http.StatusOK, updates)
+	})
+
+	assetHandler := http.FileServer(s.box.HTTPBox())
+	s.r.GET("/*", func(c echo.Context) error {
+		assetHandler.ServeHTTP(c.Response().Writer, c.Request())
+		return nil
 	})
 }
 

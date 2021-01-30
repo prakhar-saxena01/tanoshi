@@ -3,9 +3,9 @@ module github.com/faldez/tanoshi
 go 1.15
 
 require (
+	github.com/GeertJohan/go.rice v1.0.2
 	github.com/antchfx/htmlquery v1.2.3
 	github.com/antchfx/xpath v1.1.11 // indirect
-	github.com/gin-gonic/gin v1.6.3
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/json-iterator/go v1.1.10
 	github.com/labstack/echo/v4 v4.1.17
@@ -18,6 +18,7 @@ require (
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/postgres v1.0.6
 	gorm.io/driver/sqlite v1.1.4
