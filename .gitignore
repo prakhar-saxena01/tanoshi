@@ -8,3 +8,6 @@ mangas/
 node_modules/
 web/.eslintcache
 cmd/tanoshi/rice-box.go
+**/__debug_bin
+webview.dll
+WebView2Loader.dll

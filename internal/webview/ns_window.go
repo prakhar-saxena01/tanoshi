@@ -1,3 +1,5 @@
+// +build darwin
+
 package webview
 
 // #cgo CFLAGS: -x objective-c
@@ -12,4 +14,9 @@ type NSWindow struct {
 
 func (self *NSWindow) Center() {
 	C.Center(self.ptr)
+}
+
+func init() {
+	window := &NSWindow{w.w.Window()}
+	window.Center()
 }

@@ -73,12 +73,12 @@ func main() {
 		err := srv.Run(fmt.Sprintf(":%s", cfg.Port))
 		log.Fatalln(err)
 	} else {
+		log.Println("run desktop")
 		go func() {
 			err := srv.Run(fmt.Sprintf(":%s", cfg.Port))
 			log.Fatalln(err)
 		}()
 
-		w := webview.NewWebview()
-		w.Run()
+		webview.Run(fmt.Sprintf("http://localhost:%s", cfg.Port))
 	}
 }
