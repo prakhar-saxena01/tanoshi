@@ -14,31 +14,19 @@ type Config struct {
 	path         string `yaml:"-"`
 	Port         string `yaml:"port"`
 	DatabaseURL  string `yaml:"database_url"`
-	Password     string `yaml:"password"`
 	ExtensionURL string `yaml:"extension_url"`
 }
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randSeq(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
-func defaultConfig(path string) *Config {
+func defaultConfig(path string) Config {
 	rand.Seed(time.Now().UnixNano())
 
-	return &Config{
+	return Config{
 		Port:        "80",
 		DatabaseURL: "sqlite://" + filepath.Dir(path) + "/kumo.db",
-		Password:    randSeq(32),
 	}
 }
 
-func Load(path string) (*Config, error) {
+func Load(path string) (Config, error) {
 	f, err := ioutil.ReadFile(path)
 	if err != nil {
 		cfg := defaultConfig(path)
@@ -48,14 +36,11 @@ func Load(path string) (*Config, error) {
 	var config Config
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
-		return nil, err
+		return config, err
 	}
-	if config.Password == "" {
-		config.Password = randSeq(32)
-		config.Save()
-	}
+
 	config.path = path
-	return &config, nil
+	return config, nil
 }
 
 func (c *Config) Save() error {
