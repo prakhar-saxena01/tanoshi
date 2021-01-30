@@ -6,8 +6,18 @@ module.exports = {
             gray: colors.trueGray,
             red: colors.red,
             white: colors.white,
+            'light-blue': colors.lightBlue
         },
         extend: {
+            keyframes: {
+                'tw-pulse': {
+                    '0%, 100%': { opacity: 1 },
+                    '50%': { opacity: 0.5 }
+                }
+            },
+            animation: {
+                'tw-pulse': 'tw-pulse 1s ease-in-out infinite',
+            },
             colors: {
                 'accent': '#5b749b',
                 'accent-lighter': '#7e93b3',
@@ -25,7 +35,7 @@ module.exports = {
                 'safe-bottom-scroll': 'calc(env(safe-area-inset-bottom) + 3rem)'
             },
             gridTemplateColumns: {
-              '16': 'repeat(16, minmax(0, 1fr))',
+                '16': 'repeat(16, minmax(0, 1fr))',
             }
         },
         container: {
@@ -37,10 +47,7 @@ module.exports = {
         textColor: ['dark', 'responsive', 'hover', 'focus', 'disabled'],
         divideColor: ['dark']
     },
-    plugins: [
-        require('@tailwindcss/typography'),
-        require('@tailwindcss/aspect-ratio')
-    ],
+    plugins: [],
     darkMode: 'media',
     experimental: {
         darkModeVariant: true,
