@@ -86,7 +86,7 @@ function Manga(props) {
                 .then((response) => response.json())
                 .then((data) => {
                     setManga(data);
-                    setFavorite(data.IsFavorite);
+                    setIsFavorite(data.IsFavorite);
                 }).catch((e) => {
                     console.log(e);
                 });
