@@ -1,0 +1,52 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+
+
+jobs:
+  publish:
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+     matrix:
+      include:
+        - os: ubuntu-latest
+          arch: amd64
+          asset_name: tanoshi-linux-amd64
+        - os: ubuntu-latest
+          arch: arm64
+          asset_name: tanoshi-linux-arm64
+        - os: windows-latest
+          arch: amd64
+          asset_name: tanoshi-windows-amd64.exe
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Frontend
+        if:  ${{ matrix.os != 'windows-latest' }}
+        run: cd $GITHUB_WORKSPACE/web && yarn && yarn build
+      - name: Build Frontend Windows
+        if:  ${{ matrix.os == 'windows-latest' }}
+        run: cd $Env:GITHUB_WORKSPACE\web && yarn && yarn build
+      - name: Install go.rice
+        run: |
+          go get github.com/GeertJohan/go.rice
+          go get github.com/GeertJohan/go.rice/rice
+      - name: Rice embed
+        if:  ${{ matrix.os != 'windows-latest' }}
+        run: cd $GITHUB_WORKSPACE/cmd/tanoshi && /home/runner/go/bin/rice embed-go
+      - name: Rice embed Windows
+        if:  ${{ matrix.os == 'windows-latest' }}
+        run: cd $Env:GITHUB_WORKSPACE\cmd\tanoshi && $Env:GOPATH\bin\rice embed-go
+      - name: Build
+        run: go build -o build/${{ matrix.asset_name }} ./cmd/tanoshi
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/${{ matrix.asset_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+    
