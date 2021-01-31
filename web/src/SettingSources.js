@@ -15,16 +15,25 @@ function SettingSources() {
             });
     }, [isInstalling])
 
-    const installSource = (sourceName) => {
+    const installSource = (sourceName, update) => {
         setInstalling(true);
-        fetch(`/api/source/${sourceName}/install`, {
-            method: "POST"
+        fetch(`/api/source/${sourceName}`, {
+            method: update ? "PUT" : "POST"
         })
             .then((response) => setInstalling(false))
             .catch((e) => {
                 console.log(e);
                 setInstalling(false);
             });
+    }
+
+    const text = (s) => {
+        if (s.Update) {
+            return "Update"
+        } else if (s.Installed) {
+            return "Installed"
+        }
+        return "Install"
     }
 
     if (!sourceList) {
@@ -44,7 +53,7 @@ function SettingSources() {
                                 <div className={"text-gray-800 dark:text-gray-200 text-sm text-left"}>{s.Version}</div>
                             </div>
                         </Link>
-                        <button disabled={s.Installed} className={s.Installed ? "" : "block"} onClick={() => installSource(s.Name)}>{s.Installed ? "Installed" : "Install"}</button>
+                        <button disabled={s.Installed && !s.Update} className={s.Installed ? "" : "block"} onClick={() => installSource(s.Name, s.Update)}>{text(s)}</button>
                     </div>
                 </div>
             ))}

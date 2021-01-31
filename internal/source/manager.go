@@ -1,6 +1,8 @@
 package source
 
 import (
+	"strconv"
+
 	jsoniter "github.com/json-iterator/go"
 
 	"errors"
@@ -25,7 +27,7 @@ func NewManager(repo *Repository) (*Manager, error) {
 	}
 
 	for name := range sources {
-		if err := sources[strings.ToLower(name)].Initialize(); err != nil {
+		if err := sources[name].Initialize(); err != nil {
 			log.Println(err.Error())
 			continue
 		}
@@ -35,7 +37,7 @@ func NewManager(repo *Repository) (*Manager, error) {
 }
 
 func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/source.json", RepositoryURL))
+	resp, err := http.Get(fmt.Sprintf("%s/source.json", strings.TrimSuffix(RepositoryURL, "/")))
 	if err != nil {
 		return nil, err
 	}
@@ -50,15 +52,43 @@ func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
 	}
 
 	for i := range sources {
-		sources[i].Icon = fmt.Sprintf("%s/%s", RepositoryURL, sources[i].Icon)
-		_, sources[i].Installed = sm.sources[strings.ToLower(sources[i].Name)]
+		name := sources[i].Name
+
+		sources[i].Icon = fmt.Sprintf("%s/source/%s/icon.png", strings.TrimSuffix(RepositoryURL, "/"), name)
+		_, sources[i].Installed = sm.sources[name]
+		if sources[i].Installed {
+
+			remoteVersion := strings.Split(sources[i].Version, ".")
+			installedVersion := strings.Split(sm.sources[name].Version, ".")
+
+			remoteMajor, _ := strconv.ParseInt(remoteVersion[0], 10, 64)
+			remoteMinor, _ := strconv.ParseInt(remoteVersion[1], 10, 64)
+			remotePatch, _ := strconv.ParseInt(remoteVersion[2], 10, 64)
+
+			installedMajor, _ := strconv.ParseInt(installedVersion[0], 10, 64)
+			installedMinor, _ := strconv.ParseInt(installedVersion[1], 10, 64)
+			installedPatch, _ := strconv.ParseInt(installedVersion[2], 10, 64)
+
+			if remoteMajor > installedMajor {
+				sources[i].Update = true
+			} else if remoteMajor == installedMajor {
+				if remoteMinor > installedMinor {
+					sources[i].Update = true
+				} else if remoteMinor == installedMinor {
+					if remotePatch > installedPatch {
+						sources[i].Update = true
+					}
+				}
+			}
+			sources[i].Version = sm.sources[name].Version
+		}
 	}
 
 	return sources, nil
 }
 
 func (sm *Manager) InstallSource(name string) error {
-	if _, installed := sm.sources[strings.ToLower(name)]; installed {
+	if _, installed := sm.sources[name]; installed {
 		return errors.New("source installed")
 	}
 	resp, err := http.Get(fmt.Sprintf("%s/source/%s/%s.lua", RepositoryURL, name, name))
@@ -75,17 +105,52 @@ func (sm *Manager) InstallSource(name string) error {
 		return err
 	}
 
-	err = sm.repo.SaveSource(&source)
+	err = source.Initialize()
+	if err != nil {
+		return err
+	}
+	source.Icon = fmt.Sprintf("%s/source/%s/icon.png", RepositoryURL, name)
+
+	err = sm.repo.CreateSource(&source)
 	if err != nil {
 		return err
 	}
 
-	sm.sources[strings.ToLower(name)] = &source
-	err = sm.sources[strings.ToLower(name)].Initialize()
+	sm.sources[name] = &source
+	return nil
+}
+
+func (sm *Manager) UpdateSource(name string) error {
+	if _, installed := sm.sources[name]; !installed {
+		return errors.New("source not installed")
+	}
+	sm.sources[name] = nil
+
+	resp, err := http.Get(fmt.Sprintf("%s/source/%s/%s.lua", RepositoryURL, name, name))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	source := Source{
+		Name: name,
+	}
+	source.Contents, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
+	err = source.Initialize()
+	if err != nil {
+		return err
+	}
+
+	err = sm.repo.UpdateSource(&source)
+	if err != nil {
+		return err
+	}
+
+	sm.sources[name] = &source
 	return nil
 }
 

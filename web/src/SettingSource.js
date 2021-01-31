@@ -17,7 +17,7 @@ function Input(props) {
     }
 
     return (
-        <div className={"flex justify-between py-2 mx-2"}>
+        <div className={"flex justify-between py-2 mx-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"}>
             <label htmlFor={props.id} className={"toggle-label my-auto mx-2 text-gray-900 dark:text-gray-100"}>{props.label}</label>
             {render()}
         </div>
@@ -35,21 +35,21 @@ function SettingSource(props) {
 
     React.useEffect(() => {
         if (!config) {
-            fetch(`/api/source/${props.sourceName.toLowerCase()}/config`)
+            fetch(`/api/source/${props.sourceName}/config`)
                 .then((response) => response.json())
                 .then(data => setConfig(data))
                 .catch((e) => {
                     console.log(e);
                 });
         }
-    }, [props.sourceName])
+    }, [props.sourceName, config])
 
     const login = () => {
         if (username === "" || password === "") {
             return
         }
 
-        fetch(`/api/source/${props.sourceName.toLowerCase()}/login`, {
+        fetch(`/api/source/${props.sourceName}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -68,7 +68,7 @@ function SettingSource(props) {
     }
 
     const save = () => {
-        fetch(`/api/source/${props.sourceName.toLowerCase()}/config`, {
+        fetch(`/api/source/${props.sourceName}/config`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -95,7 +95,7 @@ function SettingSource(props) {
                 <button className={"py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b text-accent"} onClick={() => login()}>Submit</button>
             </div>
             <h1 className={"m-2 text-left text-gray-900 dark:text-gray-100"}>Languages</h1>
-            {config && <div className={"rounded shadow flex flex-col m-auto bg-white dark:bg-gray-800 divide-y-2 dark:divide-gray-900 divide-gray-100"}>
+            {config && <div className={"rounded shadow flex flex-col m-auto bg-white dark:bg-gray-800 divide-y-2 dark:divide-gray-900 divide-gray-50"}>
                 {config && Object.keys(config.Language).map((k) => (
                     <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
                 ))}

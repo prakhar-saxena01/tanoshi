@@ -31,14 +31,18 @@ func (r *Repository) GetSources() (map[string]*Source, error) {
 			return nil, err
 		}
 
-		sources[strings.ToLower(source.Name)] = &source
+		sources[source.Name] = &source
 	}
 
 	return sources, nil
 }
 
-func (r *Repository) SaveSource(s *Source) error {
-	return r.db.Save(s).Error
+func (r *Repository) CreateSource(s *Source) error {
+	return r.db.Create(s).Error
+}
+
+func (r *Repository) UpdateSource(s *Source) error {
+	return r.db.Where("name = ?", s.Name).Updates(s).Error
 }
 
 func (r *Repository) SaveSourceConfig(s *Source) error {

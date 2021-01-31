@@ -50,9 +50,9 @@ function BrowseSource(props) {
     React.useEffect(() => {
         setLoading(true);
 
-        let url = `/api/source/${props.sourceName.toLowerCase()}`
+        let url = `/api/source/${props.sourceName}`
         if (isLatest) {
-            url += "/latest"
+            url += `/latest?page=${page}`
         } else {
             url += `?title=${keyword}&page=${page}`
         }
@@ -64,7 +64,7 @@ function BrowseSource(props) {
             }).catch((e) => {
                 console.log(e);
             });
-    }, [props.sourceName, keyword, page, isLatest])
+    }, [props.sourceName, keyword, page])
 
     if (mangaList.length === 0) {
         return (

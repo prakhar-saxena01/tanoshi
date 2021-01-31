@@ -89,7 +89,7 @@ function ReaderWrapper(props) {
         return (
             <div ref={el} className={"h-screen w-screen overflow-y-auto"} onScroll={onscroll} onClick={() => props.onHideBar()}>
                 {props.pages.map((p, index) => (
-                    <img ref={(el) => refs.current[index] = el} className={"page my-2 mx-auto"} key={index} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></img>
+                    <img ref={(el) => refs.current[index] = el} className={`page my-2 mx-auto ${props.currentPage !== index ? "page" : ""}`} key={index} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></img>
                 ))}
             </div>
         )

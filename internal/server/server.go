@@ -70,8 +70,15 @@ func (s *Server) RegisterHandler() {
 
 		return c.JSON(http.StatusOK, sourceList)
 	})
-	api.POST("/source/:name/install", func(c echo.Context) error {
+	api.POST("/source/:name", func(c echo.Context) error {
 		err := s.sourceHandler.InstallSource(c.Param("name"))
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
+		}
+		return c.String(http.StatusOK, "OK")
+	})
+	api.PUT("/source/:name", func(c echo.Context) error {
+		err := s.sourceHandler.UpdateSource(c.Param("name"))
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}

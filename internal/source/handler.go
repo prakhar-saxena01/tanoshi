@@ -16,6 +16,10 @@ func (h *Handler) InstallSource(name string) error {
 	return h.sm.InstallSource(name)
 }
 
+func (h *Handler) UpdateSource(name string) error {
+	return h.sm.UpdateSource(name)
+}
+
 func (h *Handler) GetSourceList() ([]*Source, error) {
 	return h.sm.List()
 }

@@ -22,9 +22,10 @@ type Source struct {
 	Contents   []byte  `json:"-"`
 	Config     *Config `json:"-"`
 	Installed  bool    `gorm:"-"`
-	Version    string  `gorm:"-"`
-	URL        string  `gorm:"-"`
-	Icon       string  `gorm:"-"`
+	Version    string
+	URL        string
+	Icon       string
+	Update     bool `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
 }
@@ -64,6 +65,10 @@ func (s *Source) Initialize() error {
 		s.l.Close()
 		return err
 	}
+	if err := s.getVersion(); err != nil {
+		s.l.Close()
+		return err
+	}
 
 	return nil
 }
@@ -98,6 +103,15 @@ func (s *Source) getLanguageOptions() error {
 		}
 	})
 
+	s.l.Pop(1)
+	return nil
+}
+
+func (s *Source) getVersion() error {
+	if err := s.callLuaFunc("version"); err != nil {
+		return err
+	}
+	s.Version = s.l.CheckString(1)
 	s.l.Pop(1)
 	return nil
 }
