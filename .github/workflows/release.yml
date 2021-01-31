@@ -24,6 +24,9 @@ jobs:
           asset_name: tanoshi-windows-amd64.exe
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.15' # The Go version to download (if necessary) and use.
       - name: Build Frontend
         if:  ${{ matrix.os != 'windows-latest' }}
         run: cd $GITHUB_WORKSPACE/web && yarn && yarn build
