@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from "@reach/router"
 
 function Input(props) {
     const render = () => {
@@ -30,8 +29,6 @@ function SettingSource(props) {
     const [twoFactor, setTwoFactor] = React.useState("");
     const [remember, setRemember] = React.useState(false);
     const [config, setConfig] = React.useState();
-
-    const navigate = useNavigate();
 
     React.useEffect(() => {
         if (!config) {

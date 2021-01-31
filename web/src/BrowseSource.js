@@ -64,6 +64,7 @@ function BrowseSource(props) {
             }).catch((e) => {
                 console.log(e);
             });
+    // eslint-disable-next-line
     }, [props.sourceName, keyword, page])
 
     if (mangaList.length === 0) {

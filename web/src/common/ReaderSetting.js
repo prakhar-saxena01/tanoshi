@@ -1,28 +1,4 @@
 import React from 'react';
-import { useNavigate } from "@reach/router"
-
-function Input(props) {
-    const render = () => {
-        switch (typeof props.val) {
-            case 'boolean':
-                return (
-                    <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggle" id={props.id} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-1 appearance-none cursor-pointer" onChange={(e) => props.onChange(e.target.checked)} checked={props.val} />
-                        <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer shadow"></label>
-                    </div>
-                )
-            default:
-                return ""
-        }
-    }
-
-    return (
-        <div className={"flex justify-between py-2"}>
-            <label htmlFor={props.id} className={"toggle-label my-auto mx-2"}>{props.label}</label>
-            {render()}
-        </div>
-    )
-}
 
 function ReaderSetting(props) {
     const [readerMode, setReaderMode] = React.useState();
@@ -51,24 +27,28 @@ function ReaderSetting(props) {
         if(props.setReaderMode) {
             props.setReaderMode(readerMode);
         }
+    // eslint-disable-next-line
     }, [settingPath, readerMode])
     React.useEffect(() => {
         localStorage.setItem(`displayMode${settingPath}`, displayMode);
         if(props.setDisplayMode) {
             props.setDisplayMode(displayMode);
         }
+    // eslint-disable-next-line
     }, [settingPath, displayMode])
     React.useEffect(() => {
         localStorage.setItem(`direction${settingPath}`, direction);
         if(props.setDirection) {
             props.setDirection(direction);
         }
+    // eslint-disable-next-line
     }, [settingPath, direction])
     React.useEffect(() => {
         localStorage.setItem(`background${settingPath}`, background);
         if(props.setBackground) {
             props.setBackground(background);
         }
+    // eslint-disable-next-line
     }, [settingPath, background])
     
     return (
