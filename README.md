@@ -8,6 +8,6 @@ Rewrite in progress of [Tanoshi](https://github.com/faldez/tanoshi/tree/rust), t
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.23.41.png)
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.20.34.png)
 
-<img src="assets/IMG_73577C410A56-1.jpeg" width="300">)
-<img src="assets/IMG_3436B10A2508-1.jpeg" width="300">)
-<img src="assets/IMG_B8461880E874-1.jpeg" width="300">)
+<img src="assets/IMG_73577C410A56-1.jpeg" width="250">
+<img src="assets/IMG_3436B10A2508-1.jpeg" width="250">
+<img src="assets/IMG_B8461880E874-1.jpeg" width="250">
