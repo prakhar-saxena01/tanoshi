@@ -3,10 +3,11 @@ Selfhosted web manga reader with extension model.
 
 Rewrite in progress of [Tanoshi](https://github.com/faldez/tanoshi/tree/rust), track issue [here](https://github.com/faldez/tanoshi/issues/137)
 
+## Screenshot
+![](assets/Screen%20Shot%202021-01-31%20at%2016.20.38.png)
+![](assets/Screen%20Shot%202021-01-31%20at%2016.23.41.png)
+![](assets/Screen%20Shot%202021-01-31%20at%2016.20.34.png)
 
-For standalone mode to works on windows, it is necessary to add loopback excempt
-
-```powershell
-CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1
-h2txyewy"
-```
+<img src="assets/IMG_73577C410A56-1.jpeg" width="300">)
+<img src="assets/IMG_3436B10A2508-1.jpeg" width="300">)
+<img src="assets/IMG_B8461880E874-1.jpeg" width="300">)
