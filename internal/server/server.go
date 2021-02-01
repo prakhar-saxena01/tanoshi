@@ -317,11 +317,14 @@ func (s *Server) RegisterHandler() {
 	})
 
 	assetHandler := http.FileServer(s.box.HTTPBox())
-	s.r.GET("/", echo.WrapHandler(assetHandler))
-
-	// servers other static files
-	s.r.GET("/static/*", echo.WrapHandler(assetHandler))
-
+	s.r.GET("/*", echo.WrapHandler(assetHandler), middleware.Rewrite(map[string]string{
+		"/manga/*":    "/",
+		"/chapter/*":  "/",
+		"/browse/*":   "/",
+		"/history/*":  "/",
+		"/update/*":   "/",
+		"/settings/*": "/",
+	}))
 }
 
 func (s *Server) Run(addr string) error {

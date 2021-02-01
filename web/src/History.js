@@ -44,7 +44,7 @@ function History() {
     return (
         <div className={"divide-y divide-gray-100 dark:divide-gray-900"}>
             {history && history.map((h, i) => (
-                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${h.ChapterID}`}  state={{mangaTitle: h.MangaTitle}}>
+                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${h.ChapterID}`}  state={{mangaId: h.MangaID, mangaTitle: h.MangaTitle}}>
                     <img className={"h-24 object-cover rounded"} alt={h.MangaTitle} src={`/api/proxy?url=${h.CoverURL}`}></img>
                     <div className={"flex flex-col ml-2"}>
                         <h1 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{h.MangaTitle}</h1>

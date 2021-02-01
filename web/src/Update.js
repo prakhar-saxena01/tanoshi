@@ -44,7 +44,7 @@ function Update() {
     return (
         <div className={"divide-y divide-gray-100 dark:divide-gray-900 rounded"}>
             {update && update.map((u, i) => (
-                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${u.ChapterID}`} state={{mangaTitle: u.MangaTitle}}>
+                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${u.ChapterID}`} state={{mangaId: u.MangaID, mangaTitle: u.MangaTitle}}>
                     <img className={"h-24 rounded object-cover"} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}></img>
                     <div className={"flex flex-col ml-2"}>
                         <h1 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{u.MangaTitle}</h1>

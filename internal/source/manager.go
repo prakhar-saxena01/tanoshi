@@ -261,7 +261,7 @@ func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error)
 			manga.Chapters = append(manga.Chapters, *chapters[i])
 		}
 	}
-	manga, err = sm.repo.SaveManga(manga)
+	manga, err = sm.repo.UpdateManga(manga)
 	if err != nil {
 		return nil, err
 	}

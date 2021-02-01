@@ -71,8 +71,13 @@ func (r *Repository) SaveSourceConfig(s *Source) error {
 	return tx.Commit().Error
 }
 
-func (r *Repository) SaveManga(m *Manga) (*Manga, error) {
-	err := r.db.Omit("is_favorite", "created_at").Save(m).Error
+func (r *Repository) UpdateManga(m *Manga) (*Manga, error) {
+	err := r.db.Omit("is_favorite", "created_at").Updates(m).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.db.First(m).Error
 	if err != nil {
 		return nil, err
 	}

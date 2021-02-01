@@ -1,5 +1,5 @@
 import { navigate } from '@reach/router';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ReaderSetting from './common/ReaderSetting';
 
 function Topbar(props) {
@@ -10,9 +10,9 @@ function Topbar(props) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <div className={"flex flex-col"}>
-                <span className={"truncate"}>{props.mangaTitle}</span>
-                <span className={"truncate"}>{props.chapterTitle}</span>
+            <div className={"flex flex-col truncate"}>
+                <span>{props.mangaTitle}</span>
+                <span>{props.chapterTitle}</span>
             </div>
             <button className={"mx-2"} onClick={(e) => props.onReaderSetting()}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
@@ -119,23 +119,45 @@ function ReaderWrapper(props) {
                 </div>
             )
         }
-    } else {
-        return (
-            <div></div>
-        )
     }
+    return (
+        <div></div>
+    )
 }
 
 function Reader(props) {
+    const { mangaId, mangaTitle } = props.location.state;
+    const defaultSetting = {
+        readerMode: "paged",
+        displayMode: "single",
+        direction: "lefttoright",
+        background: "white"
+    };
+    const getItem = (key) => {
+        var settingPath = mangaId ? `/${mangaId}` : "";
+        let setting = localStorage.getItem(`${key}${settingPath}`);
+        if (!setting) {
+            setting = localStorage.getItem(`${key}`);
+        }
+        if (!setting) {
+            localStorage.setItem(key, defaultSetting[key]);
+            setting = localStorage.getItem(`${key}`);
+        }
+        return setting
+    }
+
     const [currentPage, setCurrentPage] = useState(0);
     const [chapter, setChapter] = useState();
     const [barVisible, setBarVisible] = useState(true);
 
     const [showReaderSetting, setReaderSetting] = useState(false);
-    const [readerMode, setReaderMode] = React.useState();
-    const [displayMode, setDisplayMode] = React.useState();
-    const [direction, setDirection] = React.useState();
-    const [background, setBackground] = React.useState();
+    const [readerMode, setReaderMode] = React.useState(getItem("readerMode"));
+    const [displayMode, setDisplayMode] = React.useState(getItem("displayMode"));
+    const [direction, setDirection] = React.useState(getItem("direction"));
+    const [background, setBackground] = React.useState(getItem("background"));
+
+    const didMountRef = useRef(false);
+
 
     React.useEffect(() => {
         if (!chapter) {
@@ -166,55 +188,25 @@ function Reader(props) {
         }
     }, [props.chapterId, currentPage])
 
-    React.useEffect(() => { 
-        if(chapter) {
-            const getItem = (key) => {
-                var settingPath = chapter.MangaID ? `/${chapter.MangaID}` : "";
-                let setting = localStorage.getItem(`${key}${settingPath}`);
-                if (!setting) {
-                    setting = localStorage.getItem(`${key}`);
-                }
-                return setting
-            }
-    
-            let readerMode = getItem("readerMode");
-            if (readerMode === "") {
-                readerMode = "paged";
-                localStorage.setItem("readerMode", readerMode);
-            }
-            setReaderMode(readerMode);
-    
-            let displayMode = getItem("displayMode");
-            if (displayMode === "") {
-                displayMode = "single";
-                localStorage.setItem("displayMode", displayMode);
-            }
-            setDisplayMode(displayMode);
-    
-            let direction = getItem("direction");
-            if (direction === "") {
-                direction = "lefttoright";
-                localStorage.setItem("direction", direction);
-            }
-            setDirection(direction);
-    
-            let background = getItem("background");
-            if (background === "") {
-                background = "white";
-                localStorage.setItem("background", background);
-            }
-            setBackground(background);
+    React.useEffect(() => {
+        if (didMountRef.current) {
+            localStorage.setItem(`readerMode/${mangaId}`, readerMode);
+            localStorage.setItem(`displayMode/${mangaId}`, displayMode);
+            localStorage.setItem(`direction/${mangaId}`, direction);
+            localStorage.setItem(`background/${mangaId}`, background);
+        } else {
+            didMountRef.current = true;
         }
-    }, [chapter])
+    }, [readerMode, displayMode, direction, background, mangaId])
 
     return (
         <div className={`min-h-screen flex ${background === "black" ? "bg-gray-900" : "bg-white"}`}>
-            <Topbar mangaTitle={props.location.state.mangaTitle} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)}/>
+            <Topbar mangaTitle={mangaTitle} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
             <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
             <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} />
             {showReaderSetting &&
                 <div className={"fixed z-50 right-0 mt-10"}>
-                        <ReaderSetting mangaId={chapter && chapter.MangaID} setReaderMode={setReaderMode} setDisplayMode={setDisplayMode} setDirection={setDirection} setBackground={setBackground}/>
+                    <ReaderSetting mangaId={chapter && chapter.MangaID} setReaderMode={setReaderMode} setDisplayMode={setDisplayMode} setDirection={setDirection} setBackground={setBackground} />
                 </div>
             }
         </div>
