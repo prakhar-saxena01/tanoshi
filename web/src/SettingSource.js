@@ -7,7 +7,7 @@ function Input(props) {
                 return (
                     <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                         <input type="checkbox" name="toggle" id={props.id} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-1 appearance-none cursor-pointer" onChange={(e) => props.onChange(e.target.checked)} checked={props.val} />
-                        <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer shadow"></label>
+                        <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-900 cursor-pointer shadow"></label>
                     </div>
                 )
             default:

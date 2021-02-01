@@ -1,7 +1,7 @@
 import React from 'react';
 import Cover from './common/Cover';
 import Topbar from './common/Topbar';
-import {useMatch} from '@reach/router';
+import { useMatch } from '@reach/router';
 
 function Search(props) {
     return (
@@ -57,17 +57,23 @@ function BrowseSource(props) {
             url += `?title=${keyword}&page=${page}`
         }
         fetch(url)
-            .then((response) => response.json())
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json()
+                } else {
+                    return []
+                }
+            })
             .then((data) => {
                 setMangaList(m => [...m, ...data]);
                 setLoading(false);
             }).catch((e) => {
                 console.log(e);
             });
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [props.sourceName, keyword, page])
 
-    if (mangaList.length === 0) {
+    if (mangaList.length === 0 && isLoading) {
         return (
             <Skeleton sourceName={props.sourceName} />
         )

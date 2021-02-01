@@ -23,7 +23,7 @@ function BrowseSources() {
                 <span></span>
             </Topbar>
                 {sourceList.map((s, index) => (
-                    <div key={index} className={"bg-white dark:bg-gray-700 rounded mx-2 p-2 shadow"}>
+                    <div key={index} className={"bg-white dark:bg-gray-800 rounded mx-2 p-2 shadow"}>
                         <div className={"flex justify-between"}>
                             <Link className={"inline-flex w-full"} to={`/browse/${s.Name}`}>
                                 <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>

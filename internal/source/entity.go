@@ -81,6 +81,8 @@ type Chapter struct {
 	ReadAt       *time.Time `luar:"-"`
 	LastPageRead int        `luar:"-"`
 	Pages        []*Page
+	Next         uint `luar:"-" gorm:"-"`
+	Prev         uint `luar:"-" gorm:"-"`
 }
 
 const luaChapterTypeName = "Chapter"

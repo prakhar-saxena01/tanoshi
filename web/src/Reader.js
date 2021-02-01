@@ -1,15 +1,15 @@
-import { navigate } from '@reach/router';
+import { Link } from '@reach/router';
 import React, { useRef, useState } from 'react';
 import ReaderSetting from './common/ReaderSetting';
 
 function Topbar(props) {
     return (
         <div className={`flex justify-between items-center animate__animated  ${props.visible ? "animate__slideInDown" : "animate__slideOutUp"} animate__faster block fixed inset-x-0 top-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-safe-top pb-2 text-gray-50`}>
-            <button className={"mx-2"} onClick={(e) => navigate(-1)}>
+            <Link className={"mx-2"} to={`/manga/${props.mangaId}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-            </button>
+            </Link>
             <div className={"flex flex-col truncate"}>
                 <span>{props.mangaTitle}</span>
                 <span>{props.chapterTitle}</span>
@@ -27,7 +27,7 @@ function Topbar(props) {
 function Bottombar(props) {
     return (
         <div className={`flex justify-between items-center animate__animated ${props.visible ? "animate__slideInUp" : "animate__slideOutDown"} fanimate__aster block fixed inset-x-0 bottom-0 z-50 bg-gray-800 z-50 content-end opacity-75 pt-2 pb-safe-bottom text-gray-50`}>
-            <button>
+            <button className={"mx-2"} onClick={(e) => props.setChapterId(props.prev)} disabled={props.prev === 0}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
                 </svg>
@@ -37,7 +37,7 @@ function Bottombar(props) {
                 <span>/</span>
                 <span>{props.pageLength}</span>
             </div>
-            <button>
+            <button className={"mx-2"} onClick={(e) => props.setChapterId(props.next)} disabled={props.next === 0}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z" />
                 </svg>
@@ -126,6 +126,7 @@ function ReaderWrapper(props) {
 }
 
 function Reader(props) {
+    const [chapterId, setChapterId] = React.useState(props.chapterId);
     const { mangaId, mangaTitle } = props.location.state;
     const defaultSetting = {
         readerMode: "paged",
@@ -160,17 +161,15 @@ function Reader(props) {
 
 
     React.useEffect(() => {
-        if (!chapter) {
-            fetch(`/api/chapter/${props.chapterId}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setChapter(data);
-                    setCurrentPage(data.LastPageRead);
-                }).catch((e) => {
-                    console.log(e);
-                });
-        }
-    })
+        fetch(`/api/chapter/${chapterId}`)
+            .then((response) => response.json())
+            .then((data) => {
+                setChapter(data);
+                setCurrentPage(data.LastPageRead);
+            }).catch((e) => {
+                console.log(e);
+            });
+    }, [chapterId])
 
     React.useEffect(() => {
         if (showReaderSetting && !barVisible) {
@@ -180,13 +179,13 @@ function Reader(props) {
 
     React.useEffect(() => {
         if (currentPage > 0) {
-            fetch(`/api/history/chapter/${props.chapterId}?page=${currentPage}`, { method: "PUT" })
+            fetch(`/api/history/chapter/${chapterId}?page=${currentPage}`, { method: "PUT" })
                 .then((response) => response)
                 .catch((e) => {
                     console.log(e);
                 });
         }
-    }, [props.chapterId, currentPage])
+    }, [chapterId, currentPage])
 
     React.useEffect(() => {
         if (didMountRef.current) {
@@ -201,9 +200,9 @@ function Reader(props) {
 
     return (
         <div className={`min-h-screen flex ${background === "black" ? "bg-gray-900" : "bg-white"}`}>
-            <Topbar mangaTitle={mangaTitle} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
+            <Topbar mangaId={mangaId} mangaTitle={mangaTitle} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
             <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
-            <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} />
+            <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} setChapterId={setChapterId}  prev={chapter ? chapter.Prev : 0} next={chapter ? chapter.Next : 0}/>
             {showReaderSetting &&
                 <div className={"fixed z-50 right-0 mt-10"}>
                     <ReaderSetting mangaId={chapter && chapter.MangaID} setReaderMode={setReaderMode} setDisplayMode={setDisplayMode} setDirection={setDirection} setBackground={setBackground} />
