@@ -309,6 +309,10 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 	if err != nil {
 		return nil, err
 	}
+	chapter, err = sm.repo.GetChapterByID(chapterID)
+	if err != nil {
+		return nil, err
+	}
 	return chapter, err
 }
 

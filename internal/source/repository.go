@@ -176,6 +176,22 @@ func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 	}
 	chapter.Pages = pages
 
+	type PrevNext struct {
+		Prev uint `gorm:"prev"`
+		Next uint `gorm:"next"`
+	}
+
+	prevNext := PrevNext{}
+
+	subquery := r.db.Select("*, LAG(id, 1, 0) OVER (ORDER BY rank) prev, LEAD(id, 1, 0) OVER (ORDER BY rank) next").Table("chapters").Where("manga_id = ?", chapter.MangaID).Order("rank ASC")
+	err = r.db.Select("id, prev, next").Table("(?) AS u", subquery).Where("id = ?", chapter.ID).First(&prevNext).Error
+	if err != nil {
+		return nil, err
+	}
+
+	chapter.Prev = prevNext.Prev
+	chapter.Next = prevNext.Next
+
 	return &chapter, nil
 }
 
