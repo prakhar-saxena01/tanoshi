@@ -1,3 +1,5 @@
+[![Release Stats](https://img.shields.io/github/downloads/faldez/tanoshi/total.svg?logo=github)](https://somsubhra.com/github-release-stats/?username=faldez&repository=tanoshi)
+
 # Tanoshi
 Selfhosted web manga reader with extension model.
 
