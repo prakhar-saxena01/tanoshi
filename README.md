@@ -3,7 +3,11 @@ Selfhosted web manga reader with extension model.
 
 Rewrite in progress of [Tanoshi](https://github.com/faldez/tanoshi/tree/rust), track issue [here](https://github.com/faldez/tanoshi/issues/137)
 
-# Usage
+## Feature
+- Browse manga from various sources (only mangadex for now)
+- Read in continous vertical, single or double paged
+
+## Usage
 Run using
 ```
 ./tanoshi-{os}-{arch} -config /path/to/config.yml
