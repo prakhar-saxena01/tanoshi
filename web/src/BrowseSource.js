@@ -5,7 +5,7 @@ import { useMatch } from '@reach/router';
 
 function Search(props) {
     return (
-        <div className={"w-full mb-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 inline-flex"}>
+        <div className={"w-full mb-2 ml-0 inline-flex"}>
             <input className={"border rounded outline-none w-full mr-2 p-1"} placeholder={"Search"} type={"text"} onKeyDown={(e) => { if (e.key === "Enter") { props.onChange(e) } }}></input>
             <button onClick={props.onCancel}>Cancel</button>
         </div>
@@ -20,7 +20,7 @@ function Skeleton(props) {
                 <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
                 <button >Search</button>
             </Topbar>
-            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
+            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
                 <div className={`animate-tw-pulse w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
                     <div className={"bg-gray-300 h-40 md:h-80"}></div>
                     <div className={"bg-gray-300 h-40 md:h-80"}></div>
@@ -91,7 +91,7 @@ function BrowseSource(props) {
                 setPage(1);
                 setKeyword(e.target.value);
             }} />}
-            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
+            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
                 <div className={`w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
                     {mangaList.map((el, index) => (
                         <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />

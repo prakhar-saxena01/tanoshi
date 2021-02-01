@@ -16,7 +16,7 @@ function BrowseSources() {
     }, [])
 
     return (
-        <div className={"lg:pl-48"}>
+        <div className={""}>
             <Topbar>
                 <button>Filter</button>
                 <span className={"text-gray-300"}>Browse</span>

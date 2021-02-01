@@ -16,7 +16,7 @@ function Settings(props) {
                 <span className={"text-gray-300 truncate"}>Settings</span>
                 <span></span>
             </Topbar>
-            <div className={"w-full lg:pl-48"}>
+            <div className={"w-full"}>
                 {props.children}
             </div>
             <Navbar />

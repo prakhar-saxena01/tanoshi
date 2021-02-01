@@ -15,7 +15,7 @@ function Skeleton() {
                 <span className={"text-gray-300 truncate"}></span>
                 <span></span>
             </Topbar>
-            <div className={"w-full lg:pl-48 animate-tw-pulse"}>
+            <div className={"w-full animate-tw-pulse"}>
                 <div id={"detail"} className={"flex flex-col justify-center bg-white dark:bg-gray-800 p-2 mb-2 rounded shadow"}>
                     <div className={"flex"}>
                         <div className={"pb-7/6 mr-2"}>
@@ -110,21 +110,22 @@ function Manga(props) {
     return (
         <div className={"main overflow-auto w-full mx-auto px-2 flex flex-col h-auto"}>
             <Topbar>
-                <button onClick={() => navigate(-1)}>
+                <button onClick={() => navigate(`/browse/${manga.Source}`)} disabled={!manga}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6"}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <span className={"text-gray-300 truncate"}>{manga && manga.Title}</span>
                 <span></span>
             </Topbar>
-            <div className={"w-full lg:pl-48"}>
+            <div className={"w-full"}>
                 <div id={"detail"} className={"flex flex-col justify-center bg-white dark:bg-gray-800 p-2 mb-2 rounded shadow"}>
                     <div className={"flex"}>
                         <div className={"pb-7/6 mr-2"}>
                             <img className={"w-32 rounded object-cover"} alt={manga && manga.Title} src={manga && manga.CoverURL}></img>
                         </div>
                         <div className={"flex flex-col justify-left"}>
+                            <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Title</span>
+                            <span className={"md:text-xl sm:text-sm text-gray-900 dark:text-gray-300 mr-2 text-left"}>{manga && manga.Title}</span>
                             <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Authors</span>
                             <span className={"md:text-xl sm:text-sm text-gray-900 dark:text-gray-300 mr-2 text-left"}>{manga && manga.Authors}</span>
                             <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Status</span>
@@ -151,7 +152,7 @@ function Manga(props) {
                     </div>
                 </div>
             </div>
-            <div className={"w-full lg:pl-48 pb-safe-bottom-scroll"}>
+            <div className={"w-full pb-safe-bottom-scroll"}>
                 <div id={"chapters"} className={"flex justify-center bg-white dark:bg-gray-800 p-2 rounded shadow"}>
                     <div className={"flex flex-col w-full divide-y-2 dark:divide-gray-900 divide-gray-100"}>
                         <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Chapters</span>

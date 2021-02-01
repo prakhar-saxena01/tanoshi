@@ -4,7 +4,7 @@ import Navbar from './common/Navbar';
 
 function Search(props) {
     return (
-        <div className={"w-full mb-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 inline-flex"}>
+        <div className={"w-full mb-2 ml-0 inline-flex"}>
             <input className={"border rounded outline-none w-full mr-2 p-1"} placeholder={"Search"} type={"text"} onKeyDown={(e) => { if (e.key === "Enter") { props.onChange(e) } }}></input>
             <button onClick={props.onCancel}>Cancel</button>
         </div>
@@ -26,7 +26,7 @@ function Library(props) {
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
                 setKeyword(e.target.value);
             }} />}
-            <div className={"px-2 ml-0 lg:ml-2 lg:pr-2 lg:pl-48 pb-safe-bottom-scroll"}>
+            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
                 {props.children}
             </div>
             <Navbar />
