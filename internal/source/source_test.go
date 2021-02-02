@@ -49,6 +49,10 @@ func TestGetLanguageOptions(t *testing.T) {
 
 }
 
+func TestGetFilters(t *testing.T) {
+	
+}
+
 func TestGetVersion(t *testing.T) {
 
 }

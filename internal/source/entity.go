@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 
 	jsoniter "github.com/json-iterator/go"
+	lua "github.com/yuin/gopher-lua"
 
 	"errors"
 	"fmt"
@@ -101,7 +102,15 @@ type SourceResponse struct {
 	Body   string
 }
 
-type Filter struct {
-	Title string
-	Page  int
+type Filter map[string]string
+
+func (f *Filter) ToLuaTable() *lua.LTable {
+	var tbl lua.LTable
+	if f == nil {
+		return &tbl
+	}
+	for k, v := range *f {
+		tbl.RawSet(lua.LString(k), lua.LString(v))
+	}
+	return &tbl
 }

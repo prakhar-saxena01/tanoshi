@@ -35,7 +35,8 @@ type Source struct {
 	Version    string
 	URL        string
 	Icon       string
-	Update     bool `gorm:"-"`
+	Update     bool   `gorm:"-"`
+	Filters    Filter `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
 }
@@ -106,6 +107,22 @@ func (s *Source) getBaseURL() error {
 }
 
 func (s *Source) getLanguageOptions() error {
+	if err := s.callLuaFunc("languages"); err != nil {
+		return err
+	}
+
+	tbl := s.l.CheckTable(1)
+	tbl.ForEach(func(_, v lua.LValue) {
+		if _, ok := s.Config.Language[v.String()]; !ok {
+			s.Config.Language[v.String()] = true
+		}
+	})
+
+	s.l.Pop(1)
+	return nil
+}
+
+func (s *Source) getFilters() error {
 	if err := s.callLuaFunc("languages"); err != nil {
 		return err
 	}
@@ -392,7 +409,7 @@ func (s *Source) Login(username, password, twoFactor string, remember bool) erro
 }
 
 func (s *Source) fetchMangaRequest(filter Filter) (*SourceResponse, error) {
-	if err := s.callLuaFunc("fetch_manga_request", luar.New(s.l, filter)); err != nil {
+	if err := s.callLuaFunc("fetch_manga_request", filter.ToLuaTable()); err != nil {
 		return nil, err
 	}
 

@@ -98,16 +98,14 @@ func (s *Server) RegisterHandler() {
 	api.GET("/source/:name", func(c echo.Context) error {
 		name := c.Param("name")
 
-		req := new(SearchSourceRequest)
-		if err := c.Bind(req); err != nil {
+		req := make(map[string]string)
+		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
 		}
 
 		mangas, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s", name), func() (interface{}, error) {
-			mangas, err := s.sourceHandler.SearchManga(name, source.Filter{
-				Title: req.Title,
-				Page:  req.Page,
-			})
+			delete(req, "name")
+			mangas, err := s.sourceHandler.SearchManga(name, req)
 			if err != nil {
 				return nil, c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 			}
