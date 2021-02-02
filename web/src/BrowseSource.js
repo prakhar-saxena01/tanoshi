@@ -97,7 +97,7 @@ function BrowseSource(props) {
                         <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                     ))}
                 </div>
-                <button disabled={isLoading} className={"w-full mt-2 p-1 text-accent rounded bg-gray-100 dark:bg-gray-800"} onClick={() => setPage(page + 1)}>
+                <button disabled={isLoading} className={"w-full mt-2 p-1 text-accent rounded shadow-sm dark:bg-gray-800 hover:shadow dark:hover:bg-gray-700"} onClick={() => setPage(page + 1)}>
                     {isLoading ? "Loading..." : "Load More"}
                 </button>
             </div>
