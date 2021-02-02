@@ -8,7 +8,7 @@ func NewHandler(sm *Manager) *Handler {
 	return &Handler{sm}
 }
 
-func (h *Handler) GetSourcesFromRemote() ([]*Source, error) {
+func (h *Handler) GetSourcesFromRemote() ([]SourceInterface, error) {
 	return h.sm.GetSourcesFromRemote()
 }
 
@@ -20,11 +20,11 @@ func (h *Handler) UpdateSource(name string) error {
 	return h.sm.UpdateSource(name)
 }
 
-func (h *Handler) GetSourceList() ([]*Source, error) {
+func (h *Handler) GetSourceList() ([]SourceInterface, error) {
 	return h.sm.List()
 }
 
-func (h *Handler) GetSourceDetail(name string) (*Source, error) {
+func (h *Handler) GetSourceDetail(name string) (SourceInterface, error) {
 	return h.sm.Get(name), nil
 }
 

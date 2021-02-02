@@ -17,7 +17,7 @@ var RepositoryURL = "https://faldez.github.io/tanoshi-extensions"
 
 type Manager struct {
 	repo    *Repository
-	sources map[string]*Source
+	sources map[string]SourceInterface
 }
 
 func NewManager(repo *Repository) (*Manager, error) {
@@ -36,14 +36,17 @@ func NewManager(repo *Repository) (*Manager, error) {
 	return &Manager{repo, sources}, nil
 }
 
-func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
+func (sm *Manager) GetSourcesFromRemote() ([]SourceInterface, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/source.json", strings.TrimSuffix(RepositoryURL, "/")))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var sources []*Source
+	var (
+		sources    []Source
+		retSources []SourceInterface
+	)
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	err = json.NewDecoder(resp.Body).Decode(&sources)
@@ -54,12 +57,16 @@ func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
 	for i := range sources {
 		name := sources[i].Name
 
+		s, ok := sm.sources[name].(*Source)
+		if !ok {
+			continue
+		}
+
 		sources[i].Icon = fmt.Sprintf("%s/source/%s/icon.png", strings.TrimSuffix(RepositoryURL, "/"), name)
 		_, sources[i].Installed = sm.sources[name]
 		if sources[i].Installed {
-
 			remoteVersion := strings.Split(sources[i].Version, ".")
-			installedVersion := strings.Split(sm.sources[name].Version, ".")
+			installedVersion := strings.Split(s.Version, ".")
 
 			remoteMajor, _ := strconv.ParseInt(remoteVersion[0], 10, 64)
 			remoteMinor, _ := strconv.ParseInt(remoteVersion[1], 10, 64)
@@ -80,11 +87,13 @@ func (sm *Manager) GetSourcesFromRemote() ([]*Source, error) {
 					}
 				}
 			}
-			sources[i].Version = sm.sources[name].Version
+			sources[i].Version = s.Version
 		}
+
+		retSources = append(retSources, &sources[i])
 	}
 
-	return sources, nil
+	return retSources, nil
 }
 
 func (sm *Manager) InstallSource(name string) error {
@@ -97,31 +106,31 @@ func (sm *Manager) InstallSource(name string) error {
 	}
 	defer resp.Body.Close()
 
-	source := Source{
-		Name: name,
-	}
-	source.Contents, err = ioutil.ReadAll(resp.Body)
+	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
+	icon := fmt.Sprintf("%s/source/%s/icon.png", RepositoryURL, name)
+
+	source := NewSource(name, contents, icon)
 	err = source.Initialize()
 	if err != nil {
 		return err
 	}
-	source.Icon = fmt.Sprintf("%s/source/%s/icon.png", RepositoryURL, name)
 
-	err = sm.repo.CreateSource(&source)
+	err = sm.repo.CreateSource(source)
 	if err != nil {
 		return err
 	}
 
-	sm.sources[name] = &source
+	sm.sources[name] = source
 	return nil
 }
 
 func (sm *Manager) UpdateSource(name string) error {
-	if _, installed := sm.sources[name]; !installed {
+	_, installed := sm.sources[name]
+	if !installed {
 		return errors.New("source not installed")
 	}
 	sm.sources[name] = nil
@@ -132,42 +141,38 @@ func (sm *Manager) UpdateSource(name string) error {
 	}
 	defer resp.Body.Close()
 
-	source := Source{
-		Name: name,
-	}
-	source.Contents, err = ioutil.ReadAll(resp.Body)
+	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
+	icon := fmt.Sprintf("%s/source/%s/icon.png", RepositoryURL, name)
+
+	source := NewSource(name, contents, icon)
 	err = source.Initialize()
 	if err != nil {
 		return err
 	}
 
-	err = sm.repo.UpdateSource(&source)
+	err = sm.repo.UpdateSource(source)
 	if err != nil {
 		return err
 	}
 
-	sm.sources[name] = &source
+	sm.sources[name] = source
 	return nil
 }
 
-func (sm *Manager) List() ([]*Source, error) {
-	sourcesMap, err := sm.repo.GetSources()
-	if err != nil {
-		return nil, err
-	}
-	var sources []*Source
-	for _, v := range sourcesMap {
+func (sm *Manager) List() ([]SourceInterface, error) {
+	var sources []SourceInterface
+	for _, v := range sm.sources {
 		sources = append(sources, v)
 	}
 	return sources, nil
 }
 
 func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
-	s, ok := sm.sources[name]
+	s, ok := sm.sources[name].(*Source)
 	if !ok {
 		return nil, errors.New("No source")
 	}
@@ -178,17 +183,10 @@ func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
 }
 
 func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
-	s, ok := sm.sources[name]
-	if !ok {
-		return errors.New("No source")
-	}
-
-	c.Header = s.Config.Header
-	s.Config = c
-	return sm.repo.SaveSourceConfig(s)
+	return sm.repo.SaveSourceConfig(name, c)
 }
 
-func (sm *Manager) Get(name string) *Source {
+func (sm *Manager) Get(name string) SourceInterface {
 	return sm.sources[name]
 }
 
@@ -326,8 +324,10 @@ func (sm *Manager) Login(name, username, password, twoFactor string, remember bo
 		return err
 	}
 
-	if err := sm.repo.SaveSourceConfig(sm.Get(name)); err != nil {
-		return err
+	if s, ok := sm.sources[name].(*Source); ok {
+		if err := sm.repo.SaveSourceConfig(name, s.Config); err != nil {
+			return err
+		}
 	}
 
 	return nil

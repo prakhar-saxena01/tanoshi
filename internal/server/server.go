@@ -47,27 +47,20 @@ func (s *Server) RegisterHandler() {
 	api := s.r.Group("/api")
 
 	api.GET("/source", func(c echo.Context) error {
-		var (
-			sourceList []*source.Source
-			err        error
-		)
-
 		installed, _ := strconv.ParseBool(c.QueryParam("installed"))
-		sourceList, err = s.sourceHandler.GetSourcesFromRemote()
+		if installed {
+			sourceList, err := s.sourceHandler.GetSourceList()
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
+			}
+			return c.JSON(http.StatusOK, sourceList)
+
+		}
+
+		sourceList, err := s.sourceHandler.GetSourcesFromRemote()
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-
-		if installed {
-			var sources []*source.Source
-			for i := range sourceList {
-				if sourceList[i].Installed {
-					sources = append(sources, sourceList[i])
-				}
-			}
-			return c.JSON(http.StatusOK, sources)
-		}
-
 		return c.JSON(http.StatusOK, sourceList)
 	})
 	api.POST("/source/:name", func(c echo.Context) error {

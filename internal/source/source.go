@@ -16,6 +16,16 @@ import (
 	luar "layeh.com/gopher-luar"
 )
 
+type SourceInterface interface {
+	Initialize() error
+	GetLatestUpdates(page int) ([]*Manga, error)
+	GetMangaDetails(m *Manga) (*Manga, error)
+	GetChapters(m *Manga) ([]*Chapter, error)
+	GetChapter(c *Chapter) (*Chapter, error)
+	Login(username, password, twoFactor string, remember bool) error
+	FetchManga(filter Filter) ([]*Manga, error)
+}
+
 type Source struct {
 	gorm.Model
 	Name       string  `gorm:"unique_index"`
@@ -28,6 +38,10 @@ type Source struct {
 	Update     bool `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
+}
+
+func NewSource(name string, contents []byte, icon string) SourceInterface {
+	return &Source{Name: name, Contents: contents, Icon: icon}
 }
 
 // Initialize initialize source from specified path

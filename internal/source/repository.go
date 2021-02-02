@@ -1,11 +1,16 @@
 package source
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+)
+
+var (
+	ErrNotSource = errors.New("Not a source")
 )
 
 type Repository struct {
@@ -16,14 +21,14 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db}
 }
 
-func (r *Repository) GetSources() (map[string]*Source, error) {
-	rows, err := r.db.Model(&Source{}).Rows()
+func (r *Repository) GetSources() (map[string]SourceInterface, error) {
+	rows, err := r.db.Model(Source{}).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	sources := make(map[string]*Source)
+	sources := make(map[string]SourceInterface)
 	for rows.Next() {
 		var source Source
 		err := r.db.ScanRows(rows, &source)
@@ -37,28 +42,38 @@ func (r *Repository) GetSources() (map[string]*Source, error) {
 	return sources, nil
 }
 
-func (r *Repository) CreateSource(s *Source) error {
+func (r *Repository) CreateSource(src SourceInterface) error {
+	s, ok := src.(*Source)
+	if !ok {
+		return ErrNotSource
+	}
 	return r.db.Create(s).Error
 }
 
-func (r *Repository) UpdateSource(s *Source) error {
-	return r.db.Where("name = ?", s.Name).Updates(s).Error
+func (r *Repository) UpdateSource(src SourceInterface) error {
+	s, ok := src.(*Source)
+	if !ok {
+		return ErrNotSource
+	}
+	return r.db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(s).Error
 }
 
-func (r *Repository) SaveSourceConfig(s *Source) error {
+func (r *Repository) SaveSourceConfig(name string, config *Config) error {
 	langs := []string{}
-	for k, v := range s.Config.Language {
+	for k, v := range config.Language {
 		if v {
 			langs = append(langs, k)
 		}
 	}
 	tx := r.db.Begin()
-	if err := tx.Model(s).Update("config", &s.Config).Error; err != nil {
+	if err := tx.Table("sources").Where("name = ?", name).Update("config", &config).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Delete(&Chapter{}, "source = ? AND language NOT IN ?", s.Name, langs).Error; err != nil {
+	if err := tx.Delete(&Chapter{}, "source = ? AND language NOT IN ?", name, langs).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
