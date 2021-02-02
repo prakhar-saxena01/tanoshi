@@ -32,7 +32,7 @@ module.exports = {
                 'safe-top': 'calc(env(safe-area-inset-top) + theme(spacing.2))',
                 'safe-top-bar': 'calc(env(safe-area-inset-top) + theme(spacing.12))',
                 'safe-bottom': 'calc(env(safe-area-inset-bottom) + theme(spacing.2))',
-                'safe-bottom-scroll': 'calc(env(safe-area-inset-bottom) + 3rem)'
+                'safe-bottom-scroll': 'calc(env(safe-area-inset-bottom) + 5rem)'
             },
             gridTemplateColumns: {
                 '16': 'repeat(16, minmax(0, 1fr))',
