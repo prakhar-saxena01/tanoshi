@@ -136,7 +136,7 @@ func (r *Repository) GetMangaByID(id uint, includeChapter bool) (*Manga, error) 
 		err       error
 	)
 
-	err = r.db.Where("name = (?)", r.db.Table("mangas").Select("name").Where("id = ?", id)).First(&source).Error
+	err = r.db.Where("name = (?)", r.db.Table("mangas").Select("name").Where("id = ?", id)).Limit(1).Find(&source).Error
 	if err != nil {
 		return nil, err
 	}
@@ -144,12 +144,16 @@ func (r *Repository) GetMangaByID(id uint, includeChapter bool) (*Manga, error) 
 	manga.ID = id
 
 	if includeChapter {
-		for lang, enabled := range source.Config.Language {
-			if enabled {
-				languages = append(languages, lang)
+		db := r.db.Model(&manga)
+		if source.Config != nil && len(source.Config.Language) > 0 {
+			for lang, enabled := range source.Config.Language {
+				if enabled {
+					languages = append(languages, lang)
+				}
 			}
+			db = db.Where("language IN ?", languages)
 		}
-		err = r.db.Model(&manga).Where("language IN ?", languages).Order("rank desc").Association("Chapters").Find(&chapters)
+		err = db.Order("rank desc").Association("Chapters").Find(&chapters)
 		if err != nil {
 			return nil, err
 		}

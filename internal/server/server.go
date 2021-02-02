@@ -54,7 +54,6 @@ func (s *Server) RegisterHandler() {
 				return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 			}
 			return c.JSON(http.StatusOK, sourceList)
-
 		}
 
 		sourceList, err := s.sourceHandler.GetSourcesFromRemote()

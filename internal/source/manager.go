@@ -26,6 +26,7 @@ func NewManager(repo *Repository) (*Manager, error) {
 		return nil, err
 	}
 
+	sources["local"] = NewLocal("/Users/fadhlika/Downloads/Manga")
 	for name := range sources {
 		if err := sources[name].Initialize(); err != nil {
 			log.Println(err.Error())
@@ -55,6 +56,8 @@ func (sm *Manager) GetSourcesFromRemote() ([]SourceInterface, error) {
 	}
 
 	for i := range sources {
+		retSources = append(retSources, &sources[i])
+
 		name := sources[i].Name
 
 		s, ok := sm.sources[name].(*Source)
@@ -89,8 +92,6 @@ func (sm *Manager) GetSourcesFromRemote() ([]SourceInterface, error) {
 			}
 			sources[i].Version = s.Version
 		}
-
-		retSources = append(retSources, &sources[i])
 	}
 
 	return retSources, nil

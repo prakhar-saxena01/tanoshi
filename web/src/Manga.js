@@ -121,7 +121,7 @@ function Manga(props) {
                 <div id={"detail"} className={"flex flex-col justify-center bg-white dark:bg-gray-800 p-2 mb-2 rounded shadow"}>
                     <div className={"flex"}>
                         <div className={"pb-7/6 mr-2"}>
-                            <img className={"w-32 rounded object-cover"} alt={manga && manga.Title} src={manga && manga.CoverURL}></img>
+                            <img className={"w-32 rounded object-cover"} alt={manga && manga.Title} src={manga && `/api/proxy?url=${manga.CoverURL}`}></img>
                         </div>
                         <div className={"flex flex-col justify-left"}>
                             <span className={"md:text-xl sm:text-base font-bold text-gray-900 dark:text-gray-300 text-left"}>Title</span>
