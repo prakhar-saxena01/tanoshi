@@ -35,8 +35,8 @@ type Source struct {
 	Version    string
 	URL        string
 	Icon       string
-	Update     bool   `gorm:"-"`
-	Filters    Filter `gorm:"-"`
+	Update     bool           `gorm:"-"`
+	Filters    []*FilterField `gorm:"-"`
 	l          *lua.LState
 	httpClient *http.Client
 }
@@ -63,8 +63,13 @@ func (s *Source) Initialize() error {
 	s.l.SetGlobal(luaMangaTypeName, luar.NewType(s.l, Manga{}))
 	s.l.SetGlobal(luaChapterTypeName, luar.NewType(s.l, Chapter{}))
 	s.l.SetGlobal(luaPageTypeName, luar.NewType(s.l, Page{}))
+	s.l.SetGlobal(luaFilterFieldTypeName, luar.NewType(s.l, FilterField{}))
+	s.l.SetGlobal(luaFilterValueTypeName, luar.NewType(s.l, FilterValue{}))
 
-	if err := s.l.DoString(string(s.Contents)); err != nil {
+	// if err := s.l.DoString(string(s.Contents)); err != nil {
+	// 	return err
+	// }
+	if err := s.l.DoFile("/Users/fadhlika/Repos/tanoshi-extensions/source/mangadex/mangadex.lua"); err != nil {
 		return err
 	}
 
@@ -81,6 +86,11 @@ func (s *Source) Initialize() error {
 		return err
 	}
 	if err := s.getVersion(); err != nil {
+		s.l.Close()
+		return err
+	}
+
+	if err := s.getFilters(); err != nil {
 		s.l.Close()
 		return err
 	}
@@ -123,14 +133,16 @@ func (s *Source) getLanguageOptions() error {
 }
 
 func (s *Source) getFilters() error {
-	if err := s.callLuaFunc("languages"); err != nil {
+	if err := s.callLuaFunc("filters"); err != nil {
 		return err
 	}
 
 	tbl := s.l.CheckTable(1)
 	tbl.ForEach(func(_, v lua.LValue) {
-		if _, ok := s.Config.Language[v.String()]; !ok {
-			s.Config.Language[v.String()] = true
+		if ud, ok := v.(*lua.LUserData); ok {
+			if f, ok := ud.Value.(*FilterField); ok {
+				s.Filters = append(s.Filters, f)
+			}
 		}
 	})
 

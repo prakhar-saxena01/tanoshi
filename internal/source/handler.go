@@ -36,6 +36,10 @@ func (h *Handler) UpdateSourceConfig(name string, c *Config) error {
 	return h.sm.UpdateSourceConfig(name, c)
 }
 
+func (h *Handler) GetSourceFilters(name string) ([]*FilterField, error) {
+	return h.sm.GetSourceFilters(name)
+}
+
 func (h *Handler) GetSourceLatestUpdates(name string, page int) ([]*Manga, error) {
 	return h.sm.GetLatestUpdates(name, page)
 }

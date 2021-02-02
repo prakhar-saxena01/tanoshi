@@ -132,13 +132,13 @@ func (s *Server) RegisterHandler() {
 		}
 		return c.JSON(http.StatusOK, latestManga)
 	})
-	api.GET("/source/:name/detail", func(c echo.Context) error {
+	api.GET("/source/:name/filters", func(c echo.Context) error {
 		name := c.Param("name")
-		source, err := s.sourceHandler.GetSourceDetail(name)
+		f, err := s.sourceHandler.GetSourceFilters(name)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		return c.JSON(http.StatusOK, source)
+		return c.JSON(http.StatusOK, f)
 	})
 	api.POST("/source/:name/login", func(c echo.Context) error {
 		req := new(LoginRequest)

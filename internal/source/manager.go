@@ -183,6 +183,15 @@ func (sm *Manager) GetSourceConfig(name string) (*Config, error) {
 	}, nil
 }
 
+func (sm *Manager) GetSourceFilters(name string) ([]*FilterField, error) {
+	s, ok := sm.sources[name].(*Source)
+	if !ok {
+		return nil, errors.New("No source")
+	}
+
+	return s.Filters, nil
+}
+
 func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
 	return sm.repo.SaveSourceConfig(name, c)
 }

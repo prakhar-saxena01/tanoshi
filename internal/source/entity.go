@@ -114,3 +114,19 @@ func (f *Filter) ToLuaTable() *lua.LTable {
 	}
 	return &tbl
 }
+
+type FilterField struct {
+	Label      string
+	Field      string
+	IsMultiple bool
+	Values     []*FilterValue
+}
+
+const luaFilterFieldTypeName = "FilterField"
+
+type FilterValue struct {
+	Label string
+	Value string
+}
+
+const luaFilterValueTypeName = "FilterValue"
