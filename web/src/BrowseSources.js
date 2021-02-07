@@ -16,15 +16,15 @@ function BrowseSources() {
     }, [])
 
     return (
-        <div className={""}>
+        <div className={"w-full lg:pl-48"}>
             <Topbar>
                 <button>Filter</button>
                 <span className={"text-gray-300"}>Browse</span>
                 <span></span>
             </Topbar>
+            <div className={"bg-white dark:bg-gray-800 rounded mx-2 p-2 shadow divide-y divide-y-200 dark:divide-y-700"}>
                 {sourceList.map((s, index) => (
-                    <div key={index} className={"bg-white dark:bg-gray-800 rounded mx-2 p-2 shadow"}>
-                        <div className={"flex justify-between"}>
+                        <div key={index} className={"flex justify-between"}>
                             <Link className={"inline-flex w-full"} to={`/browse/${s.Name}`}>
                                 <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
                                 <div>
@@ -34,8 +34,8 @@ function BrowseSources() {
                             </Link>
                             <Link className={"text-accent hover:bg-gray-300 dark:hover:bg-gray-700 rounded h-12 p-2"} to={`/browse/${s.Name}/latest`}>Latest</Link>
                         </div>
-                    </div>
                 ))}
+                </div>
         </div>
     )
 }

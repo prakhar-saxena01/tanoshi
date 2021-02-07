@@ -126,8 +126,9 @@ function ReaderWrapper(props) {
 }
 
 function Reader(props) {
+    const [mangaId, setMangaId] = React.useState();
     const [chapterId, setChapterId] = React.useState(props.chapterId);
-    const { mangaId, mangaTitle } = props.location.state;
+    
     const defaultSetting = {
         readerMode: "paged",
         displayMode: "single",
@@ -147,6 +148,7 @@ function Reader(props) {
         return setting
     }
 
+    const [manga, setManga] = useState();
     const [currentPage, setCurrentPage] = useState(0);
     const [chapter, setChapter] = useState();
     const [barVisible, setBarVisible] = useState(true);
@@ -157,19 +159,56 @@ function Reader(props) {
     const [direction, setDirection] = React.useState(getItem("direction"));
     const [background, setBackground] = React.useState(getItem("background"));
 
+    const [isLoading, setLoading] = React.useState(false);
+
     const didMountRef = useRef(false);
 
-
+    /*
+    * Get chapter details
+    */
     React.useEffect(() => {
+        setLoading(true);
         fetch(`/api/chapter/${chapterId}`)
-            .then((response) => response.json())
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    return {};
+                }
+            })
             .then((data) => {
                 setChapter(data);
                 setCurrentPage(data.LastPageRead);
+                setMangaId(data.MangaID);
+                setLoading(false);
             }).catch((e) => {
                 console.log(e);
             });
     }, [chapterId])
+
+    /*
+    * Get manga details
+    */
+    React.useEffect(() => {
+        if (!mangaId) {
+            return
+        }
+        setLoading(true);
+        fetch(`/api/manga/${mangaId}`)
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    return {};
+                }
+            })
+            .then((data) => {
+                setManga(data);
+                setLoading(false);
+            }).catch((e) => {
+                console.log(e);
+            });
+    }, [mangaId])
 
     React.useEffect(() => {
         if (showReaderSetting && !barVisible) {
@@ -177,6 +216,10 @@ function Reader(props) {
         }
     }, [showReaderSetting, barVisible])
 
+
+    /*
+    * Post chapter history
+    */
     React.useEffect(() => {
         if (currentPage > 0) {
             fetch(`/api/history/chapter/${chapterId}?page=${currentPage}`, { method: "PUT" })
@@ -187,6 +230,9 @@ function Reader(props) {
         }
     }, [chapterId, currentPage])
 
+    /*
+    * Get reader settings
+    */
     React.useEffect(() => {
         if (didMountRef.current) {
             localStorage.setItem(`readerMode/${mangaId}`, readerMode);
@@ -198,11 +244,16 @@ function Reader(props) {
         }
     }, [readerMode, displayMode, direction, background, mangaId])
 
+    const handlSetChapter = (chapter) => {
+        setCurrentPage(0);
+        setChapterId(chapter);
+    }
+
     return (
         <div className={`min-h-screen flex ${background === "black" ? "bg-gray-900" : "bg-white"}`}>
-            <Topbar mangaId={mangaId} mangaTitle={mangaTitle} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
+            <Topbar mangaId={mangaId} mangaTitle={manga &&manga.Title} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
             <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />
-            <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} setChapterId={setChapterId}  prev={chapter ? chapter.Prev : 0} next={chapter ? chapter.Next : 0}/>
+            <Bottombar currentPage={currentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} setChapterId={handlSetChapter}  prev={chapter ? chapter.Prev : 0} next={chapter ? chapter.Next : 0}/>
             {showReaderSetting &&
                 <div className={"fixed z-50 right-0 mt-10"}>
                     <ReaderSetting mangaId={chapter && chapter.MangaID} setReaderMode={setReaderMode} setDisplayMode={setDisplayMode} setDirection={setDirection} setBackground={setBackground} />

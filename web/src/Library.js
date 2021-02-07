@@ -26,7 +26,7 @@ function Library(props) {
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
                 setKeyword(e.target.value);
             }} />}
-            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
+            <div className={"px-2 lg:ml-48 ml-0 pb-safe-bottom-scroll"}>
                 {props.children}
             </div>
             <Navbar />

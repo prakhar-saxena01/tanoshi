@@ -2,98 +2,7 @@ import React from 'react';
 import Cover from './common/Cover';
 import Topbar from './common/Topbar';
 import { useMatch } from '@reach/router';
-import Select from 'react-select';
-
-function Input(props) {
-    const { isMultiple, values } = props;
-
-    let options = [];
-    if (values) {
-        options = values.map(v => {
-            return {
-                label: v.Label,
-                value: v.Value
-            }
-        })
-    }
-
-    const styleOption = props => {
-        const {
-          children,
-          className = "bg-gray-200 dark:bg-gray-700",
-          cx,
-          getStyles,
-          isDisabled,
-          isFocused,
-          isSelected,
-          innerRef,
-          innerProps
-        } = props;
-        return (
-          <div
-            ref={innerRef}
-            css={getStyles("option", props)}
-            className={cx(
-              {
-                option: true,
-                "option--is-disabled": isDisabled,
-                "option--is-focused": isFocused,
-                "option--is-selected": isSelected
-              },
-              `${className} custom-class-name`
-            )}
-            {...innerProps}
-          >
-            {children}
-          </div>
-        );
-      };
-
-    if (!isMultiple && values && values.length > 0) {
-        return (
-            <Select components={{ styleOption }} options={options} />
-        )
-    } else if (isMultiple && values && values.length > 0) {
-        return (
-            <Select components={{ styleOption }} isMulti options={options} />
-        )
-    }
-    return (
-        <input className={"w-full focus:outline-none p-1 dark:bg-gray-700 text-gray-900 dark:text-gray-100"} type="text"></input>
-    )
-}
-
-function Section(props) {
-    const { label, isMultiple, values, field } = props;
-
-    return (
-        <div className={"w-full"}>
-            <label>{label}</label>
-            <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                <Input isMultiple={isMultiple} values={values} />
-            </div>
-        </div>
-    )
-}
-
-function Filter(props) {
-    const { filters } = props;
-
-    return (
-        <div className={"p-2"}>
-            <div className={"shadow w-full p-4 rounded-t lg:rounded mb-0 lg:mb-2 mx-auto inset-x-0 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-50 mx-2"}>
-                <div className={"w-full flex flex-col justify-between border-b border-gray-10 dark:border-gray-900 mb-2"}>
-                    <div className={"w-full flex justify-between border-b border-gray-10 dark:border-gray-900 mb-2"}>
-                        <h1>Filters</h1>
-                    </div>
-                    {filters && filters.map(f => (
-                        <Section label={f.Label} isMultiple={f.IsMultiple} values={f.Values} field={f.Field} />
-                    ))}
-                </div>
-            </div>
-        </div>
-    )
-}
+import Filter from './common/Filter';
 
 function Skeleton(props) {
     return (
@@ -124,10 +33,9 @@ function Skeleton(props) {
 function BrowseSource(props) {
     const [isLoading, setLoading] = React.useState(false);
     const [filters, setFilters] = React.useState([]);
+    const [toFilter, setToFilters] = React.useState([]);
     const [mangaList, setMangaList] = React.useState([]);
     const [page, setPage] = React.useState(1);
-    const [isSearch, setSearch] = React.useState(false);
-    const [keyword, setKeyword] = React.useState("");
 
     const isLatest = useMatch("/browse/:sourceName/latest");
 
@@ -138,8 +46,7 @@ function BrowseSource(props) {
         if (isLatest) {
             url += `/latest?page=${page}`
         } else {
-            url += `?page=${page}`
-            url += keyword !== "" ? "&title=" + keyword : ""
+            url += `?page=${page}${constructFilter(toFilter)}`;
         }
         fetch(url)
             .then((response) => {
@@ -156,7 +63,15 @@ function BrowseSource(props) {
                 console.log(e);
             });
         // eslint-disable-next-line
-    }, [props.sourceName, keyword, page])
+    }, [keyword, page, toFilter]);
+
+    const constructFilter = (val) => {
+        let query = "";
+        Object.keys(val).map(key => {
+            query += `&${key}=${toFilter[key]}`
+        })
+        return query;
+    }
 
     React.useEffect(() => {
         setLoading(true);
@@ -178,6 +93,11 @@ function BrowseSource(props) {
         // eslint-disable-next-line
     }, [props.sourceName])
 
+    const handleFilterChange = (val) => {
+        let v = Object.assign({}, val);
+        setToFilters(v);
+    }
+
     if (mangaList.length === 0 && isLoading) {
         return (
             <Skeleton sourceName={props.sourceName} />
@@ -192,9 +112,9 @@ function BrowseSource(props) {
                 <button>Filters</button>
             </Topbar>
             <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
-                <Filter filters={filters} />
+                <Filter onFilter={handleFilterChange} filters={filters} />
             </div>
-            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
+            <div className={"px-2 ml-0 lg:ml-48 pb-safe-bottom-scroll"}>
                 <div className={`w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
                     {mangaList.map((el, index) => (
                         <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />

@@ -14,7 +14,7 @@ function Navbar() {
     }
 
     return (
-        <div className={"fixed inset-x-0 bottom-0 z-40 border-t lg:border-r border-gray-300 dark:border-gray-700 safe-bottom bg-gray-100 dark:bg-gray-800 flex justify-evenly pb-safe-bottom pt-2"}>
+        <div className={"fixed inset-x-0 bottom-0 lg:inset-y-0 lg:left-0 lg:w-48 z-40 border-t lg:border-r border-gray-300 dark:border-gray-700 safe-bottom bg-gray-100 dark:bg-gray-800 flex lg:flex-col justify-evenly  lg:justify-start pb-safe-bottom pt-2 lg:pt-safe-top-bar"}>
             <Link className={navClass(libraryMatch)} to="/">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={"w-6 h-6 my-2"}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
