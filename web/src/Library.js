@@ -1,6 +1,20 @@
 import React from 'react';
 import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
+    },
+}));
 
 function Search(props) {
     return (
@@ -12,6 +26,8 @@ function Search(props) {
 }
 
 function Library(props) {
+    const classes = useStyles();
+
     const [isSearch, setSearch] = React.useState(false);
     // eslint-disable-next-line
     const [keyword, setKeyword] = React.useState("");
@@ -19,9 +35,9 @@ function Library(props) {
     return (
         <div className={"main"}>
             <Topbar>
-                <button>Filter</button>
-                <span className={"text-gray-300"}>Library</span>
-                <button >Search</button>
+                <Typography variant="h6" className={classes.title}>
+                    Library
+                </Typography>
             </Topbar>
             {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
                 setKeyword(e.target.value);

@@ -3,6 +3,7 @@ import Select from './Select';
 
 function Input(props) {
     const { isMultiple, values, handleChange } = props;
+    const [selected, setSelected] = React.useState();
 
     let options = [];
     if (values) {

@@ -40,10 +40,7 @@ module.exports = {
             maxWidth: {
                 '1/2': '50%',
             }
-        },
-        container: {
-            center: true,
-        },
+        }
     },
     variants: {
         backgroundColor: ['dark', 'responsive', 'hover', 'focus', 'disabled'],

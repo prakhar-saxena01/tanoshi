@@ -1,10 +1,23 @@
+import React from 'react';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+    appBar: {
+      zIndex: theme.zIndex.drawer + 1,
+    },
+  }));
+
 function Topbar(props) {
+    const clasess = useStyles();
     return (
-        <div className={"w-full"}>
-            <div className={"px-2 pb-2 flex justify-between fixed inset-x-0 top-0 z-50 bg-accent dark:bg-gray-900 border-b border-accent-darker dark:border-gray-800 text-gray-50 pt-safe-top"}>
-                {props.children}
-            </div>
-        </div>
+        <React.Fragment>
+            <AppBar position="fixed" className={clasess.appBar}>
+                <Toolbar>{props.children}</Toolbar>
+            </AppBar>
+            <Toolbar />
+        </React.Fragment>
     )
 }
 
