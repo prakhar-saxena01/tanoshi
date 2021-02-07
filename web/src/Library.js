@@ -33,7 +33,7 @@ function Library(props) {
     const [keyword, setKeyword] = React.useState("");
 
     return (
-        <div className={"main"}>
+        <React.Fragment>
             <Topbar>
                 <Typography variant="h6" className={classes.title}>
                     Library
@@ -46,7 +46,7 @@ function Library(props) {
                 {props.children}
             </div>
             <Navbar />
-        </div>
+        </React.Fragment>
     )
 }
 

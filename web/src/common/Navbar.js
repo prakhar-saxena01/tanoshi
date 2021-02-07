@@ -11,14 +11,14 @@ import HistoryIcon from '@material-ui/icons/History';
 import SettingsIcon from '@material-ui/icons/Settings';
 const useStyles = makeStyles({
     root: {
-      width: '100vw',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      position: 'fixed',
+        width: '100vw',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        position: 'fixed',
     },
-  });
-  
+});
+
 
 // return `flex rounded px-2 ${match ?  "text-accent lg:text-gray-90 bg-gray-100 dark:bg-gray-80 lg:bg-gray-300 lg:dark:bg-gray-700": "text-gray-900 dark:text-gray-50 lg:text-gray-900"}`
 function Navbar() {
@@ -45,20 +45,23 @@ function Navbar() {
 
     const [value, setValue] = React.useState(initialValue);
 
-    
+
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
-      };
+    };
 
     return (
-        <BottomNavigation className={clasess.root} value={value} onChange={handleChange}>
-            <BottomNavigationAction label="Library" value="library" onClick={() => navigate("/")} icon={<BookmarkIcon />} />
-            <BottomNavigationAction label="Browse" value="browse" onClick={() => navigate("/browse")} icon={<ExploreIcon />} />
-            <BottomNavigationAction label="Update" value="update" onClick={() => navigate("/update")} icon={<NotificationsIcon />} />
-            <BottomNavigationAction label="History" value="history" onClick={() => navigate("/history")} icon={<HistoryIcon />} />
-            <BottomNavigationAction label="Settings" value="settings" onClick={() => navigate("/settings")} icon={<SettingsIcon />} />
-        </BottomNavigation>
+        <React.Fragment>
+            <BottomNavigation className={clasess.root} value={value} onChange={handleChange}>
+                <BottomNavigationAction label="Library" value="library" onClick={() => navigate("/")} icon={<BookmarkIcon />} />
+                <BottomNavigationAction label="Browse" value="browse" onClick={() => navigate("/browse")} icon={<ExploreIcon />} />
+                <BottomNavigationAction label="Update" value="update" onClick={() => navigate("/update")} icon={<NotificationsIcon />} />
+                <BottomNavigationAction label="History" value="history" onClick={() => navigate("/history")} icon={<HistoryIcon />} />
+                <BottomNavigationAction label="Settings" value="settings" onClick={() => navigate("/settings")} icon={<SettingsIcon />} />
+            </BottomNavigation>
+            <BottomNavigation />
+        </React.Fragment>
     )
 }
 

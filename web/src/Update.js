@@ -1,5 +1,13 @@
 import React from 'react';
-import { Link } from '@reach/router';
+import { navigate } from '@reach/router';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import { Typography } from '@material-ui/core';
 
 function Update() {
     const [page, setPage] = React.useState(1);
@@ -42,21 +50,31 @@ function Update() {
     }
 
     return (
-        <div className={"divide-y divide-gray-100 dark:divide-gray-900 rounded"}>
-            {update && update.map((u, i) => (
-                <Link key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"} to={`/chapter/${u.ChapterID}`} state={{mangaId: u.MangaID, mangaTitle: u.MangaTitle}}>
-                    <img className={"h-24 rounded object-cover"} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}></img>
-                    <div className={"flex flex-col ml-2"}>
-                        <h1 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{u.MangaTitle}</h1>
-                        <h2 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{`${u.ChapterTitle} - ${u.ChapterNumber}`}</h2>
-                        <h2 className={"text-gray-900 dark:text-gray-50 text-left break-words"}>{calculate_days(u.UploadedAt)}</h2>
-                    </div>
-                </Link>
-            ))}
-            <button disabled={disableLoadMore} className={"w-full p-2 flex h-10 bg-white dark:bg-gray-800 shadow text-accent hover:bg-gray-300 dark:hover:bg-gray-700 justify-center"} onClick={(e) => setPage(page + 1)}>
-                {disableLoadMore ? "No More" : "Load More"}
-            </button>
-        </div>
+        <React.Fragment>
+            <List>
+                {update && update.map((u, i) => (
+                    <ListItem button key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"}  onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
+                        <Avatar alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}/>
+                        <ListItemText
+                            primary={u.MangaTitle}
+                            secondary={
+                                <React.Fragment>
+                                    <Typography variant="subtitle1">
+                                        {`${u.ChapterTitle} - ${u.ChapterNumber}`}
+                                    </Typography>
+                                    <Typography variant="subtitle2">
+                                        {calculate_days(u.UploadedAt)}
+                                    </Typography>
+                                </React.Fragment>
+                            }
+                        />
+                    </ListItem>
+                ))}
+                <button disabled={disableLoadMore} className={"w-full p-2 flex h-10 bg-white dark:bg-gray-800 shadow text-accent hover:bg-gray-300 dark:hover:bg-gray-700 justify-center"} onClick={(e) => setPage(page + 1)}>
+                    {disableLoadMore ? "No More" : "Load More"}
+                </button>
+            </List>
+        </React.Fragment>
     )
 }
 export default Update;

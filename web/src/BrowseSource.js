@@ -3,10 +3,27 @@ import Cover from './common/Cover';
 import Topbar from './common/Topbar';
 import { useMatch } from '@reach/router';
 import Filter from './common/Filter';
+import { makeStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+      flexGrow: 1,
+    },
+    menuButton: {
+      marginRight: theme.spacing(2),
+    },
+    title: {
+      flexGrow: 1,
+    },
+  }));
+  
 
 function Skeleton(props) {
     return (
-        <div>
+        <React.Fragment>
             <Topbar>
                 <span></span>
                 <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
@@ -26,11 +43,13 @@ function Skeleton(props) {
                     <div className={"bg-gray-300 h-40 md:h-80"}></div>
                 </div>
             </div>
-        </div>
+        </React.Fragment>
     )
 }
 
 function BrowseSource(props) {
+    const classes = useStyles();
+    
     const [isLoading, setLoading] = React.useState(false);
     const [filters, setFilters] = React.useState([]);
     const [toFilter, setToFilters] = React.useState([]);
@@ -63,7 +82,7 @@ function BrowseSource(props) {
                 console.log(e);
             });
         // eslint-disable-next-line
-    }, [keyword, page, toFilter]);
+    }, [page, toFilter]);
 
     const constructFilter = (val) => {
         let query = "";
@@ -105,26 +124,29 @@ function BrowseSource(props) {
     }
 
     return (
-        <div>
+        <React.Fragment>
             <Topbar>
-                <span></span>
-                <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
-                <button>Filters</button>
+                <Typography variant="h6" className={classes.title}>
+                    {`Browse ${props.sourceName}`}
+                </Typography>
+                <Button color="inherit">Filter</Button>
             </Topbar>
-            <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
+            {/* <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
                 <Filter onFilter={handleFilterChange} filters={filters} />
-            </div>
+            </div> */}
             <div className={"px-2 ml-0 lg:ml-48 pb-safe-bottom-scroll"}>
-                <div className={`w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
+                <Grid container spacing={3}>
                     {mangaList.map((el, index) => (
-                        <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                        <Grid key={index} item xs={1}>
+                            <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                        </Grid>
                     ))}
-                </div>
+                </Grid>
                 <button disabled={isLoading} className={"w-full mt-2 p-1 text-accent rounded shadow-sm dark:bg-gray-800 hover:shadow dark:hover:bg-gray-700"} onClick={() => setPage(page + 1)}>
                     {isLoading ? "Loading..." : "Load More"}
                 </button>
             </div>
-        </div>
+        </React.Fragment>
     )
 }
 

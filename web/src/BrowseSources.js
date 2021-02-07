@@ -1,8 +1,32 @@
 import React from 'react';
-import { Link } from "@reach/router";
+import { navigate } from "@reach/router";
 import Topbar from './common/Topbar';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Divider from '@material-ui/core/Divider';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
+    },
+}));
 
 function BrowseSources() {
+    const classes = useStyles();
     const [sourceList, setSourceList] = React.useState([]);
 
     React.useEffect(() => {
@@ -16,27 +40,27 @@ function BrowseSources() {
     }, [])
 
     return (
-        <div className={"w-full lg:pl-48"}>
+        <React.Fragment className={"w-full lg:pl-48"}>
             <Topbar>
-                <button>Filter</button>
-                <span className={"text-gray-300"}>Browse</span>
-                <span></span>
+                <Typography variant="h6" className={classes.title}>
+                    Browse
+                </Typography>
             </Topbar>
-            <div className={"bg-white dark:bg-gray-800 rounded mx-2 p-2 shadow divide-y divide-y-200 dark:divide-y-700"}>
+            <List>
                 {sourceList.map((s, index) => (
-                        <div key={index} className={"flex justify-between"}>
-                            <Link className={"inline-flex w-full"} to={`/browse/${s.Name}`}>
-                                <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
-                                <div>
-                                    <div className={"text-gray-900 dark:text-gray-50 text-left"}>{s.Name}</div>
-                                    <div className={"text-gray-800 dark:text-gray-200 text-sm text-left"}>{s.Version}</div>
-                                </div>
-                            </Link>
-                            <Link className={"text-accent hover:bg-gray-300 dark:hover:bg-gray-700 rounded h-12 p-2"} to={`/browse/${s.Name}/latest`}>Latest</Link>
-                        </div>
+                    <ListItem button key={index} className={"flex justify-between"} onClick={() => navigate(`/browse/${s.Name}`)}>
+                        <Avatar src={s.Icon} alt={s.Name} />
+                        <ListItemText
+                            primary={s.Name}
+                            secondary={s.Version}
+                        />
+                        <ListItemSecondaryAction onClick={() => navigate(`/browse/${s.Name}/latest`)}>
+                            <Button>Latest</Button>
+                        </ListItemSecondaryAction>
+                    </ListItem >
                 ))}
-                </div>
-        </div>
+            </List>
+        </React.Fragment>
     )
 }
 
