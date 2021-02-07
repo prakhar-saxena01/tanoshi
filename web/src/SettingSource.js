@@ -1,29 +1,56 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import { Typography } from '@material-ui/core';
+import Switch from '@material-ui/core/Switch';
+import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Checkbox from '@material-ui/core/Checkbox';
+
+const useStyles = makeStyles((theme) => ({
+    avatar: {
+        marginRight: '0.5rem',
+    },
+    button: {
+        right: 0,
+    },
+    textField: {
+        width: '100%',
+        marginBottom: '0.5rem'
+    }
+}));
 
 function Input(props) {
     const render = () => {
         switch (typeof props.val) {
             case 'boolean':
-                return (
-                    <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggle" id={props.id} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-1 appearance-none cursor-pointer" onChange={(e) => props.onChange(e.target.checked)} checked={props.val} />
-                        <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-900 cursor-pointer shadow"></label>
-                    </div>
-                )
+                return <Switch onChange={(e) => props.onChange(e.target.checked)} checked={props.val} />
             default:
                 return ""
         }
     }
 
     return (
-        <div className={"flex justify-between py-2 mx-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"}>
-            <label htmlFor={props.id} className={"toggle-label my-auto mx-2 text-gray-900 dark:text-gray-100"}>{props.label}</label>
-            {render()}
-        </div>
+        <ListItem button>
+            <ListItemText primary={props.label} />
+            <ListItemSecondaryAction>
+                {render()}
+            </ListItemSecondaryAction>
+        </ListItem>
     )
 }
 
 function SettingSource(props) {
+    const classes = useStyles();
+
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [twoFactor, setTwoFactor] = React.useState("");
@@ -79,26 +106,27 @@ function SettingSource(props) {
     }
 
     return (
-        <div className={"p-2 pb-safe-bottom-scroll"}>
-            <h1 className={"m-2 text-left text-gray-900 dark:text-gray-100"}>Login</h1>
-            <div className={"rounded shadow flex flex-col m-auto bg-white dark:bg-gray-800 pt-2"}>
-                <input id="username" className={"focus:outline-none mx-2 my-1 p-1 border border-gray-100 dark:border-gray-700 h-8 dark:bg-gray-800 text-gray-900 dark:text-gray-100"} type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)}></input>
-                <input id="password" className={"focus:outline-none mx-2 my-1 p-1 border border-gray-100 dark:border-gray-700 h-8 dark:bg-gray-800 text-gray-900 dark:text-gray-100"} type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}></input>
-                <input id="two_factor" className={"focus:outline-none mx-2 my-1 p-1 border border-gray-100 dark:border-gray-700 h-8 dark:bg-gray-800 text-gray-900 dark:text-gray-100"} type="two_factor" placeholder="Two Factor" onChange={(e) => setTwoFactor(e.target.value)}></input>
-                <div className={"inline-flex"}>
-                    <input id="remember-me" className={"focus:outline-none mx-2 my-1 p-1 border border-gray-100 h-8"} type="checkbox" placeholder="Remember Me" onChange={(e) => setRemember(e.target.checked)}></input>
-                    <label htmlFor={"remember-me"} className={"my-auto mx-2 text-gray-900 dark:text-gray-100"}>Remember Me</label>
-                </div>
-                <button className={"py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b text-accent"} onClick={() => login()}>Submit</button>
-            </div>
-            <h1 className={"m-2 text-left text-gray-900 dark:text-gray-100"}>Languages</h1>
-            {config && <div className={"rounded shadow flex flex-col m-auto bg-white dark:bg-gray-800 divide-y-2 dark:divide-gray-900 divide-gray-50"}>
-                {config && Object.keys(config.Language).map((k) => (
+        <React.Fragment>
+            <Typography variant="h6">
+                Login
+            </Typography>
+            <FormControl fullWidth>
+                <TextField className={classes.textField} id="username" label="Username" variant="outlined" onChange={(e) => setUsername(e.target.value)} />
+                <TextField className={classes.textField} id="password" label="Password" variant="outlined" onChange={(e) => setPassword(e.target.value)} />
+                <TextField className={classes.textField} id="two_factor" label="Two factor" variant="outlined" onChange={(e) => setTwoFactor(e.target.value)} />
+                <FormControlLabel className={classes.textField} control={<Checkbox name="rememberMe" />} label="Remember Me" />
+                <Button className={classes.button} variant="contained" onClick={() => login()}>Submit</Button>
+            </FormControl>
+            <Typography variant="h6">
+                Languages
+            </Typography>
+            {config && <List>
+                {Object.keys(config.Language).map((k) => (
                     <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
                 ))}
-                <button className={"py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b text-accent"} onClick={() => save()}>Submit</button>
-            </div>}
-        </div>
+                <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
+            </List>}
+        </React.Fragment>
     )
 }
 

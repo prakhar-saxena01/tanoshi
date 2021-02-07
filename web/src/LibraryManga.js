@@ -58,15 +58,13 @@ function LibraryManga(props) {
     }
 
     return (
-        <div className={classes.root}>
-            <Grid container spacing={3}>
-                {mangaList && mangaList.map((el, index) => (
-                    <Grid key={index} item xs={1}>
-                        <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
-                    </Grid>
-                ))}
-            </Grid>
-        </div >
+        <Grid container spacing={2}>
+            {mangaList && mangaList.map((el, index) => (
+                <Grid key={index} item xs={1}>
+                    <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                </Grid>
+            ))}
+        </Grid>
     )
 }
 

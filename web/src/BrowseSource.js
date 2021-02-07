@@ -18,6 +18,12 @@ const useStyles = makeStyles((theme) => ({
     title: {
       flexGrow: 1,
     },
+    button: {
+        width: '100%',
+        marginTop: '0.5rem',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    }
   }));
   
 
@@ -134,17 +140,17 @@ function BrowseSource(props) {
             {/* <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
                 <Filter onFilter={handleFilterChange} filters={filters} />
             </div> */}
-            <div className={"px-2 ml-0 lg:ml-48 pb-safe-bottom-scroll"}>
-                <Grid container spacing={3}>
+            <div>
+                <Grid container spacing={2}>
                     {mangaList.map((el, index) => (
                         <Grid key={index} item xs={1}>
                             <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                         </Grid>
                     ))}
                 </Grid>
-                <button disabled={isLoading} className={"w-full mt-2 p-1 text-accent rounded shadow-sm dark:bg-gray-800 hover:shadow dark:hover:bg-gray-700"} onClick={() => setPage(page + 1)}>
+                <Button className={classes.button} disabled={isLoading} onClick={() => setPage(page + 1)}>
                     {isLoading ? "Loading..." : "Load More"}
-                </button>
+                </Button>
             </div>
         </React.Fragment>
     )

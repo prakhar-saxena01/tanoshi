@@ -1,5 +1,6 @@
 import React from 'react';
 import { navigate } from '@reach/router';
+import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -9,7 +10,21 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import { Typography } from '@material-ui/core';
 
+const useStyles = makeStyles((theme) => ({
+    avatar: {
+      marginRight: '0.5rem',
+    },
+    button: {
+        width: '100%',
+        marginTop: '0.5rem',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    }
+  }));
+  
 function Update() {
+    const classes = useStyles();
+
     const [page, setPage] = React.useState(1);
     const [update, setUpdate] = React.useState([]);
     const [disableLoadMore, setDisableLoadMore] = React.useState(false);
@@ -54,7 +69,7 @@ function Update() {
             <List>
                 {update && update.map((u, i) => (
                     <ListItem button key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"}  onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
-                        <Avatar alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}/>
+                        <Avatar className={classes.avatar} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}/>
                         <ListItemText
                             primary={u.MangaTitle}
                             secondary={
@@ -70,9 +85,9 @@ function Update() {
                         />
                     </ListItem>
                 ))}
-                <button disabled={disableLoadMore} className={"w-full p-2 flex h-10 bg-white dark:bg-gray-800 shadow text-accent hover:bg-gray-300 dark:hover:bg-gray-700 justify-center"} onClick={(e) => setPage(page + 1)}>
+                <Button className={classes.button} disabled={disableLoadMore}  onClick={(e) => setPage(page + 1)}>
                     {disableLoadMore ? "No More" : "Load More"}
-                </button>
+                </Button>
             </List>
         </React.Fragment>
     )

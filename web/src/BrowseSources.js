@@ -23,6 +23,9 @@ const useStyles = makeStyles((theme) => ({
     title: {
         flexGrow: 1,
     },
+    avatar: {
+      marginRight: '0.5rem',
+    },
 }));
 
 function BrowseSources() {
@@ -49,7 +52,7 @@ function BrowseSources() {
             <List>
                 {sourceList.map((s, index) => (
                     <ListItem button key={index} className={"flex justify-between"} onClick={() => navigate(`/browse/${s.Name}`)}>
-                        <Avatar src={s.Icon} alt={s.Name} />
+                        <Avatar className={classes.avatar} src={s.Icon} alt={s.Name} />
                         <ListItemText
                             primary={s.Name}
                             secondary={s.Version}

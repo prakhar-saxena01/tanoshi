@@ -1,12 +1,42 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+import { Typography } from '@material-ui/core';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+
+const useStyles = makeStyles((theme) => ({
+    avatar: {
+        marginRight: '0.5rem',
+    },
+    button: {
+        width: '100%',
+        marginTop: '0.5rem',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    }
+}));
 
 function ReaderSetting(props) {
+    const classes = useStyles();
+
     const [readerMode, setReaderMode] = React.useState();
     const [displayMode, setDisplayMode] = React.useState();
     const [direction, setDirection] = React.useState();
     const [background, setBackground] = React.useState();
 
-    
+
     var settingPath = props.mangaId ? `/${props.mangaId}` : "";
     const getItem = (key) => {
         let setting = localStorage.getItem(`${key}${settingPath}`);
@@ -24,69 +54,102 @@ function ReaderSetting(props) {
     })
     React.useEffect(() => {
         localStorage.setItem(`readerMode${settingPath}`, readerMode);
-        if(props.setReaderMode) {
+        if (props.setReaderMode) {
             props.setReaderMode(readerMode);
         }
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [settingPath, readerMode])
     React.useEffect(() => {
         localStorage.setItem(`displayMode${settingPath}`, displayMode);
-        if(props.setDisplayMode) {
+        if (props.setDisplayMode) {
             props.setDisplayMode(displayMode);
         }
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [settingPath, displayMode])
     React.useEffect(() => {
         localStorage.setItem(`direction${settingPath}`, direction);
-        if(props.setDirection) {
+        if (props.setDirection) {
             props.setDirection(direction);
         }
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [settingPath, direction])
     React.useEffect(() => {
         localStorage.setItem(`background${settingPath}`, background);
-        if(props.setBackground) {
+        if (props.setBackground) {
             props.setBackground(background);
         }
-    // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [settingPath, background])
-    
+
     return (
-        <div className={"p-2"}>
-            <div className={"shadow w-full p-2 rounded-t lg:rounded mb-0 lg:mb-2 mx-auto inset-x-0 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-50 mx-2"}>
-                <div className={"w-full"}>
-                    <div className={"w-full flex justify-between border-b border-gray-10 dark:border-gray-900 mb-2"}>
-                        <h1>Settings</h1>
-                    </div>
-                    <label>Reader Mode</label>
-                    <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                        <button className={`w-1/2 ${readerMode === "continous" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setReaderMode("continous")}>Continous</button>
-                        <button className={`w-1/2 ${readerMode === "paged" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setReaderMode("paged")}>Paged</button>
-                    </div>
-                </div>
-                <div className={"w-full"}>
-                    <label>Display Mode</label>
-                    <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                        <button className={`w-1/2 ${displayMode === "single" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setDisplayMode("single")}>Single</button>
-                        <button className={`w-1/2 ${displayMode === "double" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setDisplayMode("double")}>Double</button>
-                    </div>
-                </div>
-                <div className={"w-full"}>
-                    <label>Direction</label>
-                    <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                        <button className={`w-1/2 ${direction === "lefttoright" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setDirection("lefttoright")}>Left to Right</button>
-                        <button className={`w-1/2 ${direction === "righttoleft" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setDirection("righttoleft")}>Right to Left</button>
-                    </div>
-                </div>
-                <div className={"w-full"}>
-                    <label>background</label>
-                    <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                        <button className={`w-1/2 ${background === "white" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setBackground("white")}>White</button>
-                        <button className={`w-1/2 ${background === "black" ? "bg-gray-50 dark:bg-gray-600 rounded shadow" : ""}`} onClick={() => setBackground("black")}>Black</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <React.Fragment>
+            <List>
+                <ListItem button className={"w-full"}>
+                    <ListItemText primary="Reader Mode" />
+                    <ListItemSecondaryAction>
+                        <Select
+                            value={readerMode}
+                            onChange={(event) => setReaderMode(event.target.value)}
+                        >
+                            <MenuItem value="continous">
+                                Continous
+                            </MenuItem >
+                            <MenuItem value="paged">
+                                Paged
+                            </MenuItem >
+                        </Select>
+                    </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem button className={"w-full"}>
+                    <ListItemText primary="Display Mode" />
+                    <ListItemSecondaryAction>
+                        <Select
+                            value={displayMode}
+                            onChange={(event) => setDisplayMode(event.target.value)}
+                        >
+                            <MenuItem value="single">
+                                Single
+                            </MenuItem >
+                            <MenuItem value="double">
+                                Double
+                            </MenuItem >
+                        </Select>
+                    </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem button className={"w-full"}>
+                    <ListItemText primary="Direction" />
+                    <ListItemSecondaryAction>
+                        <Select
+                            value={direction}
+                            onChange={(event) => setDirection(event.target.value)}
+                        >
+                            <MenuItem value="lefttoright">
+                                Left to Right
+                            </MenuItem >
+                            <MenuItem value="righttoleft">
+                                Right to Left
+                            </MenuItem >
+                        </Select>
+                    </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem button className={"w-full"}>
+                    <ListItemText primary="background" />
+                    <ListItemSecondaryAction>
+                        <Select
+                            value={background}
+                            onChange={(event) => setBackground(event.target.value)}
+                        >
+                            <MenuItem value="white">
+                                White
+                            </MenuItem >
+                            <MenuItem value="black">
+                                Black
+                            </MenuItem >
+                        </Select>
+                    </ListItemSecondaryAction>
+                </ListItem>
+            </List>
+        </React.Fragment>
     )
 }
 
