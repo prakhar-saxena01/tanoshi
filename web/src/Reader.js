@@ -4,15 +4,11 @@ import {
     makeStyles,
     AppBar,
     Toolbar,
-    Button,
     IconButton,
     Typography,
     Box,
-    Paper,
     Dialog,
-    DialogTitle,
     Slide,
-    ButtonBase,
     Slider,
     Backdrop
 } from '@material-ui/core';
@@ -236,26 +232,6 @@ function Reader(props) {
     const [mangaId, setMangaId] = React.useState();
     const [chapterId, setChapterId] = React.useState(props.chapterId);
 
-    const defaultSetting = {
-        readerMode: "paged",
-        displayMode: "single",
-        direction: "lefttoright",
-        background: "white"
-    };
-
-    const getItem = (key) => {
-        var settingPath = `/${mangaId}`;
-        let setting = localStorage.getItem(`${key}${settingPath}`);
-        if (!setting) {
-            setting = localStorage.getItem(`${key}`);
-        }
-        if (!setting) {
-            localStorage.setItem(key, defaultSetting[key]);
-            setting = localStorage.getItem(`${key}`);
-        }
-        return setting
-    }
-
     const [manga, setManga] = useState();
     const [currentPage, setCurrentPage] = useState(0);
     const [chapter, setChapter] = useState();
@@ -301,6 +277,26 @@ function Reader(props) {
     React.useEffect(() => {
         if (!mangaId) {
             return
+        }
+
+        const defaultSetting = {
+            readerMode: "paged",
+            displayMode: "single",
+            direction: "lefttoright",
+            background: "white"
+        };
+
+        const getItem = (key) => {
+            var settingPath = `/${mangaId}`;
+            let setting = localStorage.getItem(`${key}${settingPath}`);
+            if (!setting) {
+                setting = localStorage.getItem(`${key}`);
+            }
+            if (!setting) {
+                localStorage.setItem(key, defaultSetting[key]);
+                setting = localStorage.getItem(`${key}`);
+            }
+            return setting
         }
 
         setReaderMode(getItem("readerMode"));

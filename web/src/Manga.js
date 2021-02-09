@@ -1,20 +1,17 @@
 import React from 'react';
-import { Link, navigate } from '@reach/router';
+import { navigate } from '@reach/router';
 import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
 import { makeStyles } from '@material-ui/core/styles';
-import { Paper, Grid, Typography } from '@material-ui/core';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListSubheader from '@material-ui/core/ListSubheader';
-import Divider from '@material-ui/core/Divider';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import Chip from '@material-ui/core/Chip';
-import IconButton from '@material-ui/core/IconButton';
+import { 
+    Grid, 
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    ListSubheader,
+    Chip,
+    IconButton } from '@material-ui/core';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { navigate, useMatch } from "@reach/router"
 import { makeStyles } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
 import BottomNavigation from '@material-ui/core/BottomNavigation';
 import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
 import BookmarkIcon from '@material-ui/icons/Bookmark';

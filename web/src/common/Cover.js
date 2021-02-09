@@ -1,8 +1,6 @@
 import React from 'react';
 import { useNavigate, useMatch } from "@reach/router";
 import { makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
-import { spacing } from '@material-ui/system';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 
@@ -105,7 +103,7 @@ function Cover(props) {
 
     return (
         <Paper className={classes.image} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
-            <img className={favorite ? classes.imgFavorite : classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
+            <img className={favorite && browseMatch ? classes.imgFavorite : classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
             <Typography variant="subtitle2" className={classes.title}>
                 {props.title}
             </Typography>

@@ -1,36 +1,12 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import { Typography } from '@material-ui/core';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
-const useStyles = makeStyles((theme) => ({
-    avatar: {
-        marginRight: '0.5rem',
-    },
-    button: {
-        width: '100%',
-        marginTop: '0.5rem',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-    }
-}));
-
 function ReaderSetting(props) {
-    const classes = useStyles();
-
     const [readerMode, setReaderMode] = React.useState();
     const [displayMode, setDisplayMode] = React.useState();
     const [direction, setDirection] = React.useState();
