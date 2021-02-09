@@ -13,7 +13,8 @@ import {
     DialogTitle,
     Slide,
     ButtonBase,
-    Slider
+    Slider,
+    Backdrop
 } from '@material-ui/core';
 import ReaderSetting from './common/ReaderSetting';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -21,6 +22,7 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import CloseIcon from '@material-ui/icons/Close';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -34,6 +36,10 @@ const useStyles = makeStyles((theme) => ({
     },
     appBar: {
 
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: '#fff',
     },
     topBar: {
         opacity: '75%',
@@ -113,7 +119,7 @@ function Bottombar(props) {
         prev,
         setChapterId,
         setCurrentPage } = props;
-        
+
     return (
         <Slide direction="up" in={visible}>
             <AppBar className={classes.bottomBar}>
@@ -182,7 +188,7 @@ function ReaderWrapper(props) {
 
     if (props.readerMode === "continous") {
         return (
-            <Box height='100vh' width='100vw' overflow={{y: 'auto' }} ref={el} onScroll={onscroll} onClick={() => props.onHideBar()}>
+            <Box height='100vh' width='100vw' overflow={{ y: 'auto' }} ref={el} onScroll={onscroll} onClick={() => props.onHideBar()}>
                 {props.pages.map((p, index) => (
                     <Box key={index} component="img" width='100vw' ref={(el) => refs.current[index] = el} className={`page my-2 mx-auto ${props.currentPage !== index ? "page" : ""}`} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></Box>
                 ))}
@@ -196,7 +202,7 @@ function ReaderWrapper(props) {
                     <Box className={classes.middleButton} onClick={() => props.onHideBar()}></Box>
                     <Box className={classes.rightButton} onClick={() => nextPage(1)}></Box>
                     {props.pages.map((p, index) => (
-                        <Box key={index} component="img" margin="auto" height={{xs: 'auto', md: '100vh'}} width={{xs: '100vw', md: 'auto'}} display={index === props.currentPage ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
+                        <Box key={index} component="img" margin="auto" height={{ xs: 'auto', md: '100vh' }} width={{ xs: '100vw', md: 'auto' }} display={index === props.currentPage ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
                     ))}
                 </Box>
             )
@@ -206,7 +212,7 @@ function ReaderWrapper(props) {
                     <Box className={classes.leftButton} onClick={() => prevPage(2)}></Box>
                     <Box className={classes.middleButton} onClick={() => props.onHideBar()}></Box>
                     <Box className={classes.rightButton} onClick={() => nextPage(2)}></Box>
-                    <Box width={{xs: 'fit-content', lg: '100vw'}} display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "reverse" : "row"}>
+                    <Box width={{ xs: 'fit-content', lg: '100vw' }} display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "reverse" : "row"}>
                         {props.pages.map((p, index) => (
                             <Box key={index} component="img" margin="auto" height='100vh' width='auto' display={index === props.currentPage || index === props.currentPage + 1 ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
                         ))}
@@ -236,7 +242,7 @@ function Reader(props) {
         direction: "lefttoright",
         background: "white"
     };
-    
+
     const getItem = (key) => {
         var settingPath = `/${mangaId}`;
         let setting = localStorage.getItem(`${key}${settingPath}`);
@@ -269,6 +275,7 @@ function Reader(props) {
     * Get chapter details
     */
     React.useEffect(() => {
+        setChapter(null);
         setLoading(true);
         fetch(`/api/chapter/${chapterId}`)
             .then((response) => {
@@ -359,6 +366,9 @@ function Reader(props) {
 
     return (
         <React.Fragment>
+            <Backdrop className={classes.backdrop} open={isLoading}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Topbar mangaId={mangaId} mangaTitle={manga && manga.Title} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
             {mangaId && <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />}
             <Bottombar currentPage={currentPage} setCurrentPage={setCurrentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} setChapterId={handlSetChapter} prev={chapter ? chapter.Prev : 0} next={chapter ? chapter.Next : 0} />
