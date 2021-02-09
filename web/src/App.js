@@ -1,5 +1,8 @@
 import './App.css';
-import 'animate.css'
+import React from 'react';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import { Router } from "@reach/router";
 import Library from './Library';
 import LibraryManga from './LibraryManga';
@@ -17,17 +20,21 @@ import SettingSource from './SettingSource';
 import ReaderSetting from './common/ReaderSetting';
 
 function App() {
-  document.body.classList.add('bg-gray-50');
-  document.body.classList.add('dark:bg-gray-900');
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-  
+  const theme = React.useMemo(
+    () =>
+      createMuiTheme({
+        palette: {
+          type: prefersDarkMode ? 'dark' : 'light',
+        },
+      }),
+    [prefersDarkMode],
+  );
+
   return (
-    <div className="App">
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Router>
         <Library path="/" >
           <LibraryManga path="/" />
@@ -48,7 +55,7 @@ function App() {
           <SettingSource path="source/:sourceName" />
         </Settings>
       </Router>
-    </div>
+    </ThemeProvider>
   );
 }
 

@@ -25,33 +25,6 @@ const useStyles = makeStyles((theme) => ({
         marginRight: 'auto',
     }
   }));
-  
-
-function Skeleton(props) {
-    return (
-        <React.Fragment>
-            <Topbar>
-                <span></span>
-                <span className={"text-gray-300"}>{`Browse ${props.sourceName}`}</span>
-                <button>Filters</button>
-            </Topbar>
-            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
-                <div className={`animate-tw-pulse w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                    <div className={"bg-gray-300 h-40 md:h-80"}></div>
-                </div>
-            </div>
-        </React.Fragment>
-    )
-}
 
 function BrowseSource(props) {
     const classes = useStyles();
@@ -123,12 +96,6 @@ function BrowseSource(props) {
         setToFilters(v);
     }
 
-    if (mangaList.length === 0 && isLoading) {
-        return (
-            <Skeleton sourceName={props.sourceName} />
-        )
-    }
-
     return (
         <React.Fragment>
             <Topbar>
@@ -140,10 +107,9 @@ function BrowseSource(props) {
             {/* <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
                 <Filter onFilter={handleFilterChange} filters={filters} />
             </div> */}
-            <div>
-                <Grid container spacing={2}>
+                <Grid container spacing={1}>
                     {mangaList.map((el, index) => (
-                        <Grid key={index} item xs={1}>
+                        <Grid key={index} item xs={4} lg={1}>
                             <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                         </Grid>
                     ))}
@@ -151,7 +117,6 @@ function BrowseSource(props) {
                 <Button className={classes.button} disabled={isLoading} onClick={() => setPage(page + 1)}>
                     {isLoading ? "Loading..." : "Load More"}
                 </Button>
-            </div>
         </React.Fragment>
     )
 }

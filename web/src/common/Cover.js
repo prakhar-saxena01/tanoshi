@@ -17,6 +17,13 @@ const useStyles = makeStyles((theme) => ({
         objectFit: 'cover',
         position: 'absolute'
     },
+    imgFavorite: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        position: 'absolute',
+        filter: 'brightness(0.5)'
+    },
     title: {
         position: 'absolute',
         left: 0,
@@ -25,6 +32,9 @@ const useStyles = makeStyles((theme) => ({
         backgroundColor: 'black',
         opacity: '60%',
         color: '#ffffff',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
     }
 }));
 
@@ -94,8 +104,8 @@ function Cover(props) {
     }
 
     return (
-        <Paper className={classes.image} to={`/manga/${props.id}`} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
-            <img className={classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
+        <Paper className={classes.image} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
+            <img className={favorite ? classes.imgFavorite : classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
             <Typography variant="subtitle2" className={classes.title}>
                 {props.title}
             </Typography>

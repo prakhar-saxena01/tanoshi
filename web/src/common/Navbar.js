@@ -17,6 +17,9 @@ const useStyles = makeStyles({
         right: 0,
         position: 'fixed',
     },
+    padding: {
+        backgroundColor: 'transparent'
+    }
 });
 
 
@@ -60,7 +63,7 @@ function Navbar() {
                 <BottomNavigationAction label="History" value="history" onClick={() => navigate("/history")} icon={<HistoryIcon />} />
                 <BottomNavigationAction label="Settings" value="settings" onClick={() => navigate("/settings")} icon={<SettingsIcon />} />
             </BottomNavigation>
-            <BottomNavigation />
+            <BottomNavigation className={clasess.padding} />
         </React.Fragment>
     )
 }

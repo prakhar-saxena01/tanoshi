@@ -15,23 +15,6 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function Skeleton() {
-    return (
-        <div className={`animate-tw-pulse w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-        </div>
-    )
-}
-
 function LibraryManga(props) {
     const classes = useStyles();
     const [mangaList, setMangaList] = React.useState();
@@ -51,16 +34,10 @@ function LibraryManga(props) {
         }
     })
 
-    if (!mangaList) {
-        return (
-            <Skeleton />
-        )
-    }
-
     return (
         <Grid container spacing={2}>
             {mangaList && mangaList.map((el, index) => (
-                <Grid key={index} item xs={1}>
+                <Grid key={index} item xs={4} lg={1}>
                     <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                 </Grid>
             ))}
