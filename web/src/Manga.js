@@ -16,6 +16,7 @@ import {
 } from '@material-ui/core';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
 const useStyles = makeStyles((theme) => ({
     image: {
@@ -68,6 +69,17 @@ function Manga(props) {
             });
     }
 
+    const refreshMangaDetails = () => {
+        fetch(`/api/manga/${props.mangaId}?includeChapter=1&refresh=true`)
+            .then((response) => response.json())
+            .then((data) => {
+                setManga(data);
+                setIsFavorite(data.IsFavorite);
+            }).catch((e) => {
+                console.log(e);
+            });
+    }
+
     return (
         <React.Fragment>
             <Topbar>
@@ -93,6 +105,9 @@ function Manga(props) {
                 </Grid>
                 <IconButton variant="outlined" onClick={() => setFavorite(!favorite)}>
                     {favorite ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+                </IconButton>
+                <IconButton variant="outlined" onClick={() => refreshMangaDetails()}>
+                    <RefreshIcon />
                 </IconButton>
                 <Typography variant="h6">Description</Typography>
                 <Typography gutterBottom variant="body1">{manga && manga.Description}</Typography>
