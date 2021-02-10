@@ -18,7 +18,6 @@ require (
 	github.com/mholt/archiver/v3 v3.5.0
 	github.com/pierrec/lz4/v4 v4.1.3 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
-	github.com/webview/webview v0.0.0-20210127101420-7534ef6e476a
 	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777

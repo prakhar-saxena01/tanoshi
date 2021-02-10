@@ -104,7 +104,7 @@ function Cover(props) {
     return (
         <Paper className={classes.image} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
             <img className={favorite && browseMatch ? classes.imgFavorite : classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
-            <Typography variant="subtitle2" className={classes.title}>
+            <Typography variant="subtitle1" className={classes.title}>
                 {props.title}
             </Typography>
         </Paper>
