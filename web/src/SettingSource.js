@@ -2,11 +2,8 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListSubheader from '@material-ui/core/ListSubheader';
-import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import { Typography } from '@material-ui/core';
 import Switch from '@material-ui/core/Switch';
@@ -114,18 +111,20 @@ function SettingSource(props) {
                 <TextField className={classes.textField} id="username" label="Username" variant="outlined" onChange={(e) => setUsername(e.target.value)} />
                 <TextField className={classes.textField} id="password" label="Password" variant="outlined" onChange={(e) => setPassword(e.target.value)} />
                 <TextField className={classes.textField} id="two_factor" label="Two factor" variant="outlined" onChange={(e) => setTwoFactor(e.target.value)} />
-                <FormControlLabel className={classes.textField} control={<Checkbox name="rememberMe" />} label="Remember Me" />
+                <FormControlLabel className={classes.textField} control={<Checkbox name="rememberMe" checked={remember} onChange={(e) => setRemember(e.target.checked)} />} label="Remember Me" />
                 <Button className={classes.button} variant="contained" onClick={() => login()}>Submit</Button>
             </FormControl>
             <Typography variant="h6">
                 Languages
             </Typography>
+            <FormControl fullWidth>
             {config && <List>
                 {Object.keys(config.Language).map((k) => (
                     <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
                 ))}
-                <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
             </List>}
+            <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
+            </FormControl>
         </React.Fragment>
     )
 }

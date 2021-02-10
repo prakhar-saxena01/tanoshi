@@ -130,15 +130,10 @@ function Section(props) {
                 newSelected.splice(currentIndex, 1);
             }
 
-            let obj = Object.assign({}, value);
-            obj[field] = newSelected;
-
-            setValue(obj);
+            setValue({...value, [field]: newSelected});
         } else {
-            let obj = Object.assign({}, value);
-            obj[field] = val;
             
-            setValue(obj)
+            setValue({...value, [field]: val});
         }
     };
 

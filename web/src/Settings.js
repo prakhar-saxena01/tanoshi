@@ -1,9 +1,7 @@
 import React from 'react';
-import { navigate } from '@reach/router';
 import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
-import { makeStyles } from '@material-ui/core/styles';
-import { Typography } from '@material-ui/core';
+import { Typography, Box, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -26,7 +24,9 @@ function Settings(props) {
                     Settings
                 </Typography>
             </Topbar>
-            {props.children}
+            <Box padding={2}>
+                {props.children}
+            </Box>
             <Navbar />
         </React.Fragment>
     )
