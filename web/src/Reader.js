@@ -21,8 +21,16 @@ import CloseIcon from '@material-ui/icons/Close';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 const useStyles = makeStyles((theme) => ({
-    title: {
+    titleBox: {
         flexGrow: 1,
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
+    },
+    title: {
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
     },
     button: {
         width: '100%',
@@ -52,6 +60,9 @@ const useStyles = makeStyles((theme) => ({
     },
     setting: {
         minWidth: '50%'
+    },
+    readerButton: {
+        flex: '1 1 0px',
     },
     leftButton: {
         left: 0,
@@ -87,11 +98,11 @@ function Topbar(props) {
                     <IconButton color='primary' className={"mx-2"} onClick={() => navigate(`/manga/${props.mangaId}`)}>
                         <ChevronLeftIcon />
                     </IconButton>
-                    <Box className={classes.title}>
-                        <Typography variant="h6">
+                    <Box className={classes.titleBox}>
+                        <Typography variant="subtitle1" className={classes.title}>
                             {props.mangaTitle}
                         </Typography>
-                        <Typography variant="subtitle1">
+                        <Typography variant="caption" className={classes.title}>
                             {props.chapterTitle}
                         </Typography>
                     </Box>
@@ -204,13 +215,15 @@ function ReaderWrapper(props) {
             )
         } else if (props.displayMode === "double") {
             return (
-                <Box height='100vh' width='100vw'>
-                    <Box className={classes.leftButton} onClick={() => prevPage(2)}></Box>
-                    <Box className={classes.middleButton} onClick={() => props.onHideBar()}></Box>
-                    <Box className={classes.rightButton} onClick={() => nextPage(2)}></Box>
-                    <Box width={{ xs: 'fit-content', lg: '100vw' }} display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "reverse" : "row"}>
+                <Box height='100vh' width='100vw' display='flex'>
+                    <Box position='fixed' height='100vh' width='100vw' display='flex' flexDirection={props.direction === "righttoleft" ? "row-reverse" : "row"}>
+                        <Box className={classes.readerButton} onClick={() => prevPage(2)}></Box>
+                        <Box className={classes.readerButton} onClick={() => props.onHideBar()}></Box>
+                        <Box className={classes.readerButton} onClick={() => nextPage(2)}></Box>
+                    </Box>
+                    <Box width={{ xs: 'fit-content', lg: '100vw' }} display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "row-reverse" : "row"}>
                         {props.pages.map((p, index) => (
-                            <Box key={index} component="img" margin="auto" height='100vh' width='auto' display={index === props.currentPage || index === props.currentPage + 1 ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
+                            <Box key={index} component="img" margin="auto" maxHeight='100vh' maxWidth='50%' display={index === props.currentPage || index === props.currentPage + 1 ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
                         ))}
                     </Box>
                 </Box>

@@ -3,20 +3,17 @@ import Cover from './common/Cover';
 import Topbar from './common/Topbar';
 import { useMatch } from '@reach/router';
 import Filter from './common/Filter';
-import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
+import { makeStyles, Box, Grid, Typography, Button } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      flexGrow: 1,
+        flexGrow: 1,
     },
     menuButton: {
-      marginRight: theme.spacing(2),
+        marginRight: theme.spacing(2),
     },
     title: {
-      flexGrow: 1,
+        flexGrow: 1,
     },
     button: {
         width: '100%',
@@ -24,11 +21,11 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: 'auto',
         marginRight: 'auto',
     }
-  }));
+}));
 
 function BrowseSource(props) {
     const classes = useStyles();
-    
+
     const [isLoading, setLoading] = React.useState(false);
     const [filters, setFilters] = React.useState([]);
     const [toFilter, setToFilters] = React.useState([]);
@@ -64,11 +61,10 @@ function BrowseSource(props) {
     }, [page, toFilter]);
 
     const constructFilter = (val) => {
-        let query = "";
-        Object.keys(val).map(key => {
-            query += `&${key}=${toFilter[key]}`
-        })
-        return query;
+        return Object.keys(val).reduce((q, key) => {
+            q += `&${key}=${toFilter[key]}`;
+            return q;
+        }, "");
     }
 
     React.useEffect(() => {
@@ -107,9 +103,10 @@ function BrowseSource(props) {
             {/* <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
                 <Filter onFilter={handleFilterChange} filters={filters} />
             </div> */}
+            <Box width="100vw" padding={2}>
                 <Grid container spacing={1}>
                     {mangaList.map((el, index) => (
-                        <Grid key={index} item xs={4} lg={1}>
+                        <Grid key={index} item xs={4} md={3} lg={2} xl={1}>
                             <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                         </Grid>
                     ))}
@@ -117,6 +114,7 @@ function BrowseSource(props) {
                 <Button className={classes.button} disabled={isLoading} onClick={() => setPage(page + 1)}>
                     {isLoading ? "Loading..." : "Load More"}
                 </Button>
+            </Box>
         </React.Fragment>
     )
 }
