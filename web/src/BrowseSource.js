@@ -107,7 +107,7 @@ function BrowseSource(props) {
             <Box width="100vw" padding={2}>
                 <Grid container spacing={1}>
                     {mangaList.map((el, index) => (
-                        <Grid key={index} item xs={4} md={3} lg={2} xl={1}>
+                        <Grid key={index} item xs={4} md={2} lg={1}>
                             <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                         </Grid>
                     ))}

@@ -150,7 +150,7 @@ function Bottombar(props) {
                         step={1}
                         marks
                         min={0}
-                        max={pageLength}
+                        max={pageLength - 1}
                         value={currentPage || 0}
                         onChange={(e, val) => setCurrentPage(val)} />
                     <IconButton color='primary' className={"mx-2"} onClick={(e) => setChapterId(next)} disabled={next === 0}>
