@@ -35,26 +35,28 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Library path="/" >
-          <LibraryManga path="/" />
-          <Update path="update" />
-          <History path="history" />
-        </Library>
-        <Browse path="browse">
-          <BrowseSources path="/" />
-          <BrowseSource path=":sourceName" />
-          <BrowseSource path=":sourceName/latest" />
-        </Browse>
-        <Manga path="manga/:mangaId" />
-        <Reader path="chapter/:chapterId" />
-        <Settings path="settings">
-          <SettingCategories path="/" />
-          <ReaderSetting path="reader" />
-          <SettingSources path="source" />
-          <SettingSource path="source/:sourceName" />
-        </Settings>
-      </Router>
+      <div className={"App"}>
+        <Router>
+          <Library path="/" >
+            <LibraryManga path="/" />
+            <Update path="update" />
+            <History path="history" />
+          </Library>
+          <Browse path="browse">
+            <BrowseSources path="/" />
+            <BrowseSource path=":sourceName" />
+            <BrowseSource path=":sourceName/latest" />
+          </Browse>
+          <Manga path="manga/:mangaId" />
+          <Reader path="chapter/:chapterId" />
+          <Settings path="settings">
+            <SettingCategories path="/" />
+            <ReaderSetting path="reader" />
+            <SettingSources path="source" />
+            <SettingSource path="source/:sourceName" />
+          </Settings>
+        </Router>
+      </div>
     </ThemeProvider>
   );
 }

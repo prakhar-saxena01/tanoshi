@@ -8,7 +8,7 @@ import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import { Typography } from '@material-ui/core';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     avatar: {
       marginRight: '0.5rem',
     },
@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: 'auto',
         marginRight: 'auto',
     }
-  }));
+  });
 
 function History() {
     const classes = useStyles();
@@ -66,24 +66,25 @@ function History() {
         <React.Fragment>
             <List>
                 {history && history.map((u, i) => (
-                    <ListItem button key={i} className={"h-auto p-2 flex bg-white dark:bg-gray-800 shadow"}  onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
+                    <ListItem button key={i} onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
                         <Avatar className={classes.avatar} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}/>
                         <ListItemText
                             primary={u.MangaTitle}
                             secondary={
                                 <React.Fragment>
-                                    <Typography variant="subtitle1">
+                                    <Typography component={'span'} variant="subtitle1">
                                         {`${u.ChapterTitle} - ${u.ChapterNumber}`}
+                                        <br></br>
                                     </Typography>
-                                    <Typography variant="subtitle2">
-                                        {calculate_days(u.UploadedAt)}
+                                    <Typography component={'span'} variant="subtitle2">
+                                        {calculate_days(u.ReadAt)}
                                     </Typography>
                                 </React.Fragment>
                             }
                         />
                     </ListItem>
                 ))}
-                <Button disabled={disableLoadMore}className={classes.button} onClick={(e) => setPage(page + 1)}>
+                <Button disabled={disableLoadMore} className={classes.button} onClick={(e) => setPage(page + 1)}>
                     {disableLoadMore ? "No More" : "Load More"}
                 </Button>
             </List>

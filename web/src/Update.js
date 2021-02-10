@@ -72,10 +72,11 @@ function Update() {
                             primary={u.MangaTitle}
                             secondary={
                                 <React.Fragment>
-                                    <Typography variant="subtitle1">
+                                    <Typography component={'span'} variant="subtitle1">
                                         {`${u.ChapterTitle} - ${u.ChapterNumber}`}
+                                        <br></br>
                                     </Typography>
-                                    <Typography variant="subtitle2">
+                                    <Typography component={'span'} variant="subtitle2">
                                         {calculate_days(u.UploadedAt)}
                                     </Typography>
                                 </React.Fragment>

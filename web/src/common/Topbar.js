@@ -6,7 +6,11 @@ import { makeStyles } from '@material-ui/core/styles';
 const useStyles = makeStyles((theme) => ({
     appBar: {
       zIndex: theme.zIndex.drawer + 1,
+      paddingTop: 'env(safe-area-inset-top)'
     },
+    topbar: {
+        marginTop: 'env(safe-area-inset-top)'
+    }
   }));
 
 function Topbar(props) {
@@ -16,7 +20,7 @@ function Topbar(props) {
             <AppBar position="fixed" className={clasess.appBar}>
                 <Toolbar>{props.children}</Toolbar>
             </AppBar>
-            <Toolbar />
+            <Toolbar className={clasess.topbar} />
         </React.Fragment>
     )
 }

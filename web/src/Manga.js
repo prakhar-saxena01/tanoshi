@@ -75,7 +75,7 @@ function Manga(props) {
             <Box padding={2}>
                 <Grid container spacing={2}>
                     <Grid item>
-                        <Box component='img' width={{ xs: '6rem', lg: '8rem' }} objectFit='cover' alt={manga && manga.Title} src={manga && `/api/proxy?url=${manga.CoverURL}`}></Box>
+                        <Box component='img' width={{ xs: '6rem', lg: '8rem' }} alt={manga && manga.Title} src={manga && `/api/proxy?url=${manga.CoverURL}`}></Box>
                     </Grid>
                     <Grid item xs={12} sm container>
                         <Grid item xs container direction="column" spacing={2}>

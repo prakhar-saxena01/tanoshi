@@ -1,5 +1,5 @@
 import { navigate } from '@reach/router';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
     makeStyles,
     AppBar,
@@ -39,21 +39,30 @@ const useStyles = makeStyles((theme) => ({
         marginRight: 'auto',
     },
     appBar: {
-
+        zIndex: theme.zIndex.drawer + 1,
+        paddingTop: 'env(safe-area-inset-top)'
+    },
+    dialog: {
+        zIndex: theme.zIndex.drawer + 2,
+    },
+    toolbar: {
+        marginTop: 'env(safe-area-inset-top)'
     },
     backdrop: {
-        zIndex: theme.zIndex.drawer + 1,
+        zIndex: theme.zIndex.drawer + 2,
         color: '#fff',
     },
     topBar: {
         opacity: '75%',
-        backgroundColor: '#000000'
+        backgroundColor: '#000000',
+        paddingTop: 'env(safe-area-inset-top)'
     },
     bottomBar: {
         bottom: 0,
         top: 'auto',
         opacity: '75%',
-        backgroundColor: '#000000'
+        backgroundColor: '#000000',
+        paddingBottom: 'env(safe-area-inset-bottom)'
     },
     pageIndicator: {
         flexGrow: 1,
@@ -142,6 +151,7 @@ function Bottombar(props) {
                         marks
                         min={0}
                         max={pageLength}
+                        value={currentPage || 0}
                         onChange={(e, val) => setCurrentPage(val)} />
                     <IconButton color='primary' className={"mx-2"} onClick={(e) => setChapterId(next)} disabled={next === 0}>
                         <SkipNextIcon />
@@ -175,7 +185,7 @@ function ReaderWrapper(props) {
 
         let page = 0;
         for (let i = 0; i < props.pages.length; i++) {
-            if (e.target.scrollTop > refs.current[i].offsetTop) {
+            if (refs.current[i] && window.pageYOffset > refs.current[i].offsetTop) {
                 page = i;
             } else {
                 break;
@@ -184,6 +194,17 @@ function ReaderWrapper(props) {
         props.setCurrentPage(page);
     }
 
+    let scrollListener = null;
+    if (props.readerMode === 'continous') {
+        scrollListener = window.addEventListener('scroll', onscroll);
+    }
+
+    React.useEffect(() => {
+        if (scrollListener) {
+            return window.removeEventListener('scroll', scrollListener);
+        }
+    });    
+    
     const scrollto = (index) => {
         if (index !== props.currentPage) {
             return
@@ -194,17 +215,18 @@ function ReaderWrapper(props) {
     }
 
     if (props.readerMode === "continous") {
+        window.addEventListener('scroll', onscroll);
         return (
-            <Box height='100vh' width='100vw' overflow={{ y: 'auto' }} ref={el} onScroll={onscroll} onClick={() => props.onHideBar()}>
+            <Box maxWidth='100vw' ref={el} onClick={() => props.onHideBar()} bgcolor={props.background} display='flex' flexDirection='column' alignItems='center'>
                 {props.pages.map((p, index) => (
-                    <Box key={index} component="img" width='100vw' ref={(el) => refs.current[index] = el} className={`page my-2 mx-auto ${props.currentPage !== index ? "page" : ""}`} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></Box>
+                    <Box key={index} component="img" width={{xs: '100vw', md: '75%', lg: 'auto'}} height={{xs: 'auto', lg: '100vh'}} ref={(el) => refs.current[index] = el} src={`/api/proxy?url=${p.URL}`} alt={index} onLoad={() => scrollto(index)}></Box>
                 ))}
             </Box>
         )
     } else if (props.readerMode === "paged") {
         if (props.displayMode === "single") {
             return (
-                <Box display="flex" alignItems="center" height='100vh' width='100vw'>
+                <Box display="flex" alignItems="center" height='100vh' width='100vw' bgcolor={props.background}>
                     <Box className={classes.leftButton} onClick={() => prevPage(1)}></Box>
                     <Box className={classes.middleButton} onClick={() => props.onHideBar()}></Box>
                     <Box className={classes.rightButton} onClick={() => nextPage(1)}></Box>
@@ -215,13 +237,13 @@ function ReaderWrapper(props) {
             )
         } else if (props.displayMode === "double") {
             return (
-                <Box height='100vh' width='100vw' display='flex'>
+                <Box height='100vh' width='100vw' display='flex' bgcolor={props.background}>
                     <Box position='fixed' height='100vh' width='100vw' display='flex' flexDirection={props.direction === "righttoleft" ? "row-reverse" : "row"}>
                         <Box className={classes.readerButton} onClick={() => prevPage(2)}></Box>
                         <Box className={classes.readerButton} onClick={() => props.onHideBar()}></Box>
                         <Box className={classes.readerButton} onClick={() => nextPage(2)}></Box>
                     </Box>
-                    <Box width={{ xs: 'fit-content', lg: '100vw' }} display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "row-reverse" : "row"}>
+                    <Box width={{ xs: 'fit-content', md: '100vw' }} height='100vh' display="flex" justifyContent="center" flexDirection={props.direction === "righttoleft" ? "row-reverse" : "row"}>
                         {props.pages.map((p, index) => (
                             <Box key={index} component="img" margin="auto" maxHeight='100vh' maxWidth='50%' display={index === props.currentPage || index === props.currentPage + 1 ? "block" : "none"} src={`/api/proxy?url=${p.URL}`} alt={index}></Box>
                         ))}
@@ -257,8 +279,6 @@ function Reader(props) {
     const [background, setBackground] = React.useState();
 
     const [isLoading, setLoading] = React.useState(false);
-
-    const didMountRef = useRef(false);
 
     /*
     * Get chapter details
@@ -354,20 +374,6 @@ function Reader(props) {
         }
     }, [chapterId, currentPage])
 
-    /*
-    * Get reader settings
-    */
-    React.useEffect(() => {
-        if (didMountRef.current && mangaId) {
-            localStorage.setItem(`readerMode/${mangaId}`, readerMode);
-            localStorage.setItem(`displayMode/${mangaId}`, displayMode);
-            localStorage.setItem(`direction/${mangaId}`, direction);
-            localStorage.setItem(`background/${mangaId}`, background);
-        } else {
-            didMountRef.current = true;
-        }
-    }, [readerMode, displayMode, direction, background, mangaId])
-
     const handlSetChapter = (chapter) => {
         setCurrentPage(0);
         setChapterId(chapter);
@@ -379,9 +385,9 @@ function Reader(props) {
                 <CircularProgress color="inherit" />
             </Backdrop>
             <Topbar mangaId={mangaId} mangaTitle={manga && manga.Title} chapterTitle={chapter ? chapter.Title !== "" ? `Ch. ${chapter.Number} - ${chapter.Title}` : chapter.Number : ""} visible={barVisible} onReaderSetting={() => setReaderSetting(!showReaderSetting)} />
-            {mangaId && <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />}
+            {mangaId && <ReaderWrapper readerMode={readerMode} displayMode={displayMode} direction={direction} background={background} currentPage={currentPage} setCurrentPage={setCurrentPage} pages={chapter ? chapter.Pages : []} onHideBar={() => setBarVisible(!barVisible)} />}
             <Bottombar currentPage={currentPage} setCurrentPage={setCurrentPage} pageLength={chapter ? chapter.Pages.length : 0} visible={barVisible} setChapterId={handlSetChapter} prev={chapter ? chapter.Prev : 0} next={chapter ? chapter.Next : 0} />
-            <Dialog fullScreen onClose={() => setReaderSetting(false)} open={showReaderSetting} TransitionComponent={Transition}>
+            <Dialog className={classes.dialog} fullScreen onClose={() => setReaderSetting(false)} open={showReaderSetting} TransitionComponent={Transition}>
                 <AppBar className={classes.appBar}>
                     <Toolbar>
                         <IconButton edge="start" color="inherit" onClick={() => setReaderSetting(false)} aria-label="close">
@@ -392,7 +398,7 @@ function Reader(props) {
                         </Typography>
                     </Toolbar>
                 </AppBar>
-                <Toolbar />
+                <Toolbar className={classes.toolbar} />
                 <ReaderSetting mangaId={chapter && chapter.MangaID} setReaderMode={setReaderMode} setDisplayMode={setDisplayMode} setDirection={setDirection} setBackground={setBackground} />
             </Dialog >
         </React.Fragment>

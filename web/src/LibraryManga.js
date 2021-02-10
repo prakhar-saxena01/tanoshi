@@ -22,10 +22,10 @@ function LibraryManga(props) {
     })
 
     return (
-        <Box width="100vw" padding={2}>
+        <Box width="100vw" padding={1}>
             <Grid container direction="row" justify="flex-start" alignItems="flex-start" spacing={1}>
             {mangaList && mangaList.map((el, index) => (
-                <Grid key={index} item xs={4} md={3} lg={2} xl={1}>
+                <Grid key={index} item xs={4} md={2}>
                     <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
                 </Grid>
             ))}

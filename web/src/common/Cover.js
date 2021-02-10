@@ -65,12 +65,10 @@ function Cover(props) {
     }
 
     const onmousedown = (e) => {
-        e.preventDefault();
         startTimer();
     }
 
     const onmouseup = (e) => {
-        e.preventDefault();
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;
@@ -79,13 +77,11 @@ function Cover(props) {
     }
 
     const ontouchstart = (e) => {
-        e.preventDefault();
         startTimer();
 
     }
 
     const ontouchmove = (e) => {
-        e.preventDefault();
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;
@@ -93,7 +89,6 @@ function Cover(props) {
     }
 
     const ontouchend = (e) => {
-        e.preventDefault();
         if (timeout) {
             clearTimeout(timeout);
             timeout = undefined;

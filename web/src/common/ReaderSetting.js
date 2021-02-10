@@ -28,6 +28,7 @@ function ReaderSetting(props) {
         setDirection(getItem(`direction`));
         setBackground(getItem(`background`));
     })
+    
     React.useEffect(() => {
         localStorage.setItem(`readerMode${settingPath}`, readerMode);
         if (props.setReaderMode) {

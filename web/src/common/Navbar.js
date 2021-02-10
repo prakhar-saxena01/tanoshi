@@ -8,18 +8,22 @@ import ExploreIcon from '@material-ui/icons/Explore';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import HistoryIcon from '@material-ui/icons/History';
 import SettingsIcon from '@material-ui/icons/Settings';
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
     root: {
         width: '100vw',
+        height: 'auto',
         bottom: 0,
         left: 0,
         right: 0,
         position: 'fixed',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        zIndex: theme.zIndex.drawer + 1,
     },
     padding: {
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
+        marginBottom: 'env(safe-area-inset-bottom)'
     }
-});
+}));
 
 
 // return `flex rounded px-2 ${match ?  "text-accent lg:text-gray-90 bg-gray-100 dark:bg-gray-80 lg:bg-gray-300 lg:dark:bg-gray-700": "text-gray-900 dark:text-gray-50 lg:text-gray-900"}`
