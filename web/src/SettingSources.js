@@ -1,13 +1,16 @@
 import React from 'react';
+import { useAlert } from './common/Alert';
 import { navigate } from "@reach/router";
-import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
+import {
+    makeStyles,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Button,
+    Avatar
+} from '@material-ui/core';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -28,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
         color: '#ffffff',
     },
     avatar: {
-      marginRight: '0.5rem',
+        marginRight: '0.5rem',
     },
     root: {
 
@@ -40,6 +43,8 @@ function SettingSources() {
 
     const [sourceList, setSourceList] = React.useState();
     const [isInstalling, setInstalling] = React.useState(false);
+
+    const [alert, setAlert] = useAlert();
 
     React.useEffect(() => {
         fetch(`/api/source`)
@@ -56,10 +61,17 @@ function SettingSources() {
         fetch(`/api/source/${sourceName}`, {
             method: update ? "PUT" : "POST"
         })
-            .then((response) => setInstalling(false))
+            .then((response) => {
+                if (response.status !== 200) {
+                    setAlert('error', 'Install error');
+                } else {
+                    setInstalling(false);
+                    setAlert('success', 'Install success');
+                }
+            })
             .catch((e) => {
                 console.log(e);
-                setInstalling(false);
+                setAlert('error', `Install error: ${e}`)
             });
     }
 
@@ -95,6 +107,7 @@ function SettingSources() {
                     </ListItem>
                 ))}
             </List>
+            {alert}
         </React.Fragment>
     )
 }

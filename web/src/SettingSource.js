@@ -1,16 +1,19 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Button from '@material-ui/core/Button';
-import { Typography } from '@material-ui/core';
-import Switch from '@material-ui/core/Switch';
-import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import Checkbox from '@material-ui/core/Checkbox';
+import { useAlert } from './common/Alert';
+import {
+    makeStyles,
+    Button,
+    ListItemSecondaryAction,
+    ListItemText,
+    ListItem,
+    List,
+    Typography,
+    Switch,
+    TextField,
+    FormControlLabel,
+    FormControl,
+    Checkbox
+} from '@material-ui/core'; 
 
 const useStyles = makeStyles((theme) => ({
     avatar: {
@@ -54,6 +57,8 @@ function SettingSource(props) {
     const [remember, setRemember] = React.useState(false);
     const [config, setConfig] = React.useState();
 
+    const [alert, setAlert] = useAlert();
+
     React.useEffect(() => {
         if (!config) {
             fetch(`/api/source/${props.sourceName}/config`)
@@ -82,9 +87,16 @@ function SettingSource(props) {
                 Remember: remember
             })
         })
-            .then((response) => response)
+            .then((response) => {
+                if (response.status !== 200) {
+                    setAlert('error', 'Login error');
+                } else {
+                    setAlert('success', 'Login success');
+                }
+            })
             .catch((e) => {
                 console.log(e);
+                setAlert('error', `Login error: ${e}`);
             });
     }
 
@@ -96,11 +108,19 @@ function SettingSource(props) {
             },
             body: JSON.stringify(config)
         })
-            .then((response) => response)
+            .then((response) => {
+                if (response.status !== 200) {
+                    setAlert('error', 'Set config error');
+                } else {
+                    setAlert('success', 'Set config success');
+                }
+            })
             .catch((e) => {
                 console.log(e);
+                setAlert('error', `Set config error: ${e}`)
             });
     }
+
 
     return (
         <React.Fragment>
@@ -118,13 +138,14 @@ function SettingSource(props) {
                 Languages
             </Typography>
             <FormControl fullWidth>
-            {config && <List>
-                {Object.keys(config.Language).map((k) => (
-                    <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
-                ))}
-            </List>}
-            <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
+                {config && <List>
+                    {Object.keys(config.Language).map((k) => (
+                        <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
+                    ))}
+                </List>}
+                <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
             </FormControl>
+            {alert}
         </React.Fragment>
     )
 }
