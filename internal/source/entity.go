@@ -77,6 +77,7 @@ type Chapter struct {
 	Number       string
 	Title        string
 	Language     string
+	Scanlator    string
 	Rank         float64
 	UploadedAt   time.Time
 	ReadAt       *time.Time `luar:"-"`

@@ -1,22 +1,7 @@
 import React from 'react';
 import Cover from './common/Cover';
+import { Grid, Box } from '@material-ui/core';
 
-function Skeleton() {
-    return (
-        <div className={`animate-tw-pulse w-full grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2`}>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-            <div className={"bg-gray-300 h-40 md:h-80"}></div>
-        </div>
-    )
-}
 
 function LibraryManga(props) {
     const [mangaList, setMangaList] = React.useState();
@@ -36,18 +21,16 @@ function LibraryManga(props) {
         }
     })
 
-    if (!mangaList) {
-        return (
-            <Skeleton />
-        )
-    }
-
     return (
-        <div className={"w-full grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 xl:grid-cols-10 gap-2"}>
+        <Box width="100vw" padding={2}>
+            <Grid container direction="row" justify="flex-start" alignItems="flex-start" spacing={1}>
             {mangaList && mangaList.map((el, index) => (
-                <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                <Grid key={index} item xs={4} md={3} lg={2} xl={1}>
+                    <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                </Grid>
             ))}
-        </div>
+        </Grid>
+        </Box>
     )
 }
 

@@ -1,7 +1,44 @@
 import React from 'react';
-import { Link } from "@reach/router";
+import { navigate } from "@reach/router";
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
+
+
+const useStyles = makeStyles((theme) => ({
+    image: {
+        paddingBottom: '141.5094339622642%',
+    },
+    img: {
+        width: '8rem',
+        objectFit: 'cover'
+    },
+    title: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        opacity: '60%',
+        color: '#ffffff',
+    },
+    avatar: {
+      marginRight: '0.5rem',
+    },
+    root: {
+
+    }
+}));
 
 function SettingSources() {
+    const classes = useStyles();
+
     const [sourceList, setSourceList] = React.useState();
     const [isInstalling, setInstalling] = React.useState(false);
 
@@ -41,25 +78,25 @@ function SettingSources() {
     }
 
     return (
-        <div className={"p-2"}>
-            <h1 className={"text-gray-900 dark:text-gray-100 text-left text-lg"}>Sources</h1>
-            {sourceList.map((s, index) => (
-                <div key={index} className={"bg-white dark:bg-gray-800 rounded p-2 shadow"}>
-                    <div className={"flex justify-between"}>
-                        <Link className={"inline-flex w-full"} to={`/settings/source/${s.Name}`}>
-                            <img className={"w-10 h-10 mr-2"} src={s.Icon} alt={s.Name}></img>
-                            <div>
-                                <div className={"text-gray-900 dark:text-gray-50 text-left"}>{s.Name}</div>
-                                <div className={"text-gray-800 dark:text-gray-200 text-sm text-left"}>{s.Version}</div>
-                            </div>
-                        </Link>
-                        <div className={"text-accent hover:bg-gray-300 dark:hover:bg-gray-700 rounded h-12 p-2"}>
-                        <button disabled={s.Installed && !s.Update} className={s.Installed ? "" : "block self-center"} onClick={() => installSource(s.Name, s.Update)}>{text(s)}</button>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
+        <React.Fragment>
+            <Typography variant="h6">
+                Sources
+            </Typography>
+            <List>
+                {sourceList.map((s, index) => (
+                    <ListItem button key={index} onClick={() => navigate(`/settings/source/${s.Name}`)}>
+                        <Avatar className={classes.avatar} src={s.Icon} alt={s.Name} />
+                        <ListItemText
+                            primary={s.Name}
+                            secondary={s.Version}
+                        />
+                        <ListItemSecondaryAction>
+                            <Button disabled={s.Installed && !s.Update} onClick={() => installSource(s.Name, s.Update)}>{text(s)}</Button>
+                        </ListItemSecondaryAction>
+                    </ListItem>
+                ))}
+            </List>
+        </React.Fragment>
     )
 }
 

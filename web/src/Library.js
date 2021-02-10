@@ -1,36 +1,34 @@
 import React from 'react';
 import Topbar from './common/Topbar';
 import Navbar from './common/Navbar';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 
-function Search(props) {
-    return (
-        <div className={"w-full mb-2 ml-0 inline-flex"}>
-            <input className={"border rounded outline-none w-full mr-2 p-1"} placeholder={"Search"} type={"text"} onKeyDown={(e) => { if (e.key === "Enter") { props.onChange(e) } }}></input>
-            <button onClick={props.onCancel}>Cancel</button>
-        </div>
-    )
-}
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
+    },
+}));
 
 function Library(props) {
-    const [isSearch, setSearch] = React.useState(false);
-    // eslint-disable-next-line
-    const [keyword, setKeyword] = React.useState("");
+    const classes = useStyles();
 
     return (
-        <div className={"main"}>
+        <React.Fragment>
             <Topbar>
-                <button>Filter</button>
-                <span className={"text-gray-300"}>Library</span>
-                <button >Search</button>
+                <Typography variant="h6" className={classes.title}>
+                    Library
+                </Typography>
             </Topbar>
-            {isSearch && <Search onCancel={() => setSearch(false)} onChange={(e) => {
-                setKeyword(e.target.value);
-            }} />}
-            <div className={"px-2 ml-0 pb-safe-bottom-scroll"}>
-                {props.children}
-            </div>
+            {props.children}
             <Navbar />
-        </div>
+        </React.Fragment>
     )
 }
 

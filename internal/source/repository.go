@@ -179,8 +179,10 @@ func (r *Repository) GetChaptersByMangaID(mangaID uint) ([]*Chapter, error) {
 
 func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 	var (
-		chapter Chapter = Chapter{}
-		pages   []*Page
+		source    Source
+		chapter   Chapter = Chapter{}
+		languages []string
+		pages     []*Page
 	)
 	chapter.ID = id
 
@@ -202,7 +204,23 @@ func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 
 	prevNext := PrevNext{}
 
+	err = r.db.Where("name = (?)", r.db.Table("chapters").Select("name").Where("id = ?", id)).First(&source).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if source.Config != nil && len(source.Config.Language) > 0 {
+		for lang, enabled := range source.Config.Language {
+			if enabled {
+				languages = append(languages, lang)
+			}
+		}
+	}
+
 	subquery := r.db.Select("*, LAG(id, 1, 0) OVER (ORDER BY rank) prev, LEAD(id, 1, 0) OVER (ORDER BY rank) next").Table("chapters").Where("manga_id = ?", chapter.MangaID).Order("rank ASC")
+	if len(languages) > 0 {
+		subquery = subquery.Where("language IN ?", languages)
+	}
 	err = r.db.Select("id, prev, next").Table("(?) AS u", subquery).Where("id = ?", chapter.ID).First(&prevNext).Error
 	if err != nil {
 		return nil, err

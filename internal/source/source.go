@@ -69,7 +69,7 @@ func (s *Source) Initialize() error {
 	// if err := s.l.DoString(string(s.Contents)); err != nil {
 	// 	return err
 	// }
-	if err := s.l.DoFile("/Users/fadhlika/Repos/tanoshi-extensions/source/mangadex/mangadex.lua"); err != nil {
+	if err := s.l.DoFile("C:\\Users\\fadhlika\\Repos\\tanoshi-extensions\\source\\mangadex\\mangadex.lua"); err != nil {
 		return err
 	}
 

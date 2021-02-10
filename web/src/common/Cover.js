@@ -1,7 +1,44 @@
 import React from 'react';
-import { useNavigate, useMatch } from "@reach/router"
+import { useNavigate, useMatch } from "@reach/router";
+import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
+
+const useStyles = makeStyles((theme) => ({
+    image: {
+        position: 'relative',
+        paddingBottom: '141.5094339622642%',
+    },
+    img: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        position: 'absolute'
+    },
+    imgFavorite: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        position: 'absolute',
+        filter: 'brightness(0.5)'
+    },
+    title: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        opacity: '60%',
+        color: '#ffffff',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
+    }
+}));
 
 function Cover(props) {
+    const classes = useStyles();
+
     let timeout;
     const browseMatch = useMatch('/browse/*');
 
@@ -65,12 +102,12 @@ function Cover(props) {
     }
 
     return (
-        <button className={"cursor-pointer relative rounded-md pb-7/5 shadow bg-gray-900"} to={`/manga/${props.id}`} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
-            <img className={`absolute w-full h-full object-cover rounded-md ${favorite && browseMatch ? "opacity-25": "opacity-100"}`} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
-            <span className={"absolute left-0 bottom-0 sm:text-sm text-xs bg-gradient-to-t from-gray-900 to-transparent w-full opacity-75 text-gray-50 px-1 pb-1 pt-4 truncate rounded-b-md"}>
+        <Paper className={classes.image} onMouseDown={onmousedown} onMouseUp={onmouseup} onTouchStart={ontouchstart} onTouchMove={ontouchmove} onTouchEnd={ontouchend}>
+            <img className={favorite && browseMatch ? classes.imgFavorite : classes.img} src={`/api/proxy?url=${props.coverUrl}`} alt=""></img>
+            <Typography variant="subtitle1" className={classes.title}>
                 {props.title}
-            </span>
-        </button>
+            </Typography>
+        </Paper>
     )
 }
 
