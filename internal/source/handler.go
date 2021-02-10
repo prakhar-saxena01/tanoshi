@@ -48,8 +48,8 @@ func (h *Handler) SearchManga(name string, filter Filter) ([]*Manga, error) {
 	return h.sm.SearchManga(name, filter)
 }
 
-func (h *Handler) GetMangaDetails(id uint, includeChapter bool) (*Manga, error) {
-	return h.sm.GetMangaDetails(id, includeChapter)
+func (h *Handler) GetMangaDetails(id uint, includeChapter bool, refresh bool) (*Manga, error) {
+	return h.sm.GetMangaDetails(id, includeChapter, refresh)
 }
 
 func (h *Handler) GetChapters(mangaID uint) ([]*Chapter, error) {

@@ -155,9 +155,10 @@ func (s *Server) RegisterHandler() {
 	api.GET("/manga/:id", func(c echo.Context) error {
 		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 		includeChapter, _ := strconv.ParseBool(c.QueryParam("includeChapter"))
+		refresh, _ := strconv.ParseBool(c.QueryParam("refresh"))
 
 		manga, err, _ := s.requestGroup.Do(fmt.Sprintf("manga/%d/%v", id, includeChapter), func() (interface{}, error) {
-			manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter)
+			manga, err := s.sourceHandler.GetMangaDetails(uint(id), includeChapter, refresh)
 			if err != nil {
 				return nil, err
 			}

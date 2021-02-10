@@ -238,7 +238,7 @@ func (sm *Manager) SearchManga(name string, filter Filter) ([]*Manga, error) {
 	return mangas, nil
 }
 
-func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error) {
+func (sm *Manager) GetMangaDetails(id uint, includeChapter bool, refresh bool) (*Manga, error) {
 	manga, err := sm.repo.GetMangaByID(id, includeChapter)
 	if err != nil {
 		return nil, err
@@ -247,7 +247,7 @@ func (sm *Manager) GetMangaDetails(id uint, includeChapter bool) (*Manga, error)
 		return nil, errors.New("manga not found")
 	}
 
-	if !manga.IsIncomplete() {
+	if !manga.IsIncomplete() && !refresh {
 		if includeChapter && len(manga.Chapters) > 0 {
 			return manga, nil
 		} else if !includeChapter {
@@ -284,6 +284,7 @@ func (sm *Manager) GetChapters(mangaID uint) ([]*Chapter, error) {
 	if c != nil {
 		return c, nil
 	}
+
 	manga, err := sm.repo.GetMangaByID(mangaID, true)
 	if err != nil {
 		return nil, err
