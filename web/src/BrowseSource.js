@@ -27,6 +27,7 @@ function BrowseSource(props) {
     const classes = useStyles();
 
     const [isLoading, setLoading] = React.useState(false);
+    const [showFilters, setShowFilters] = React.useState(false);
     const [filters, setFilters] = React.useState([]);
     const [toFilter, setToFilters] = React.useState([]);
     const [mangaList, setMangaList] = React.useState([]);
@@ -85,11 +86,13 @@ function BrowseSource(props) {
                 console.log(e);
             });
         // eslint-disable-next-line
-    }, [props.sourceName])
+    }, [props.sourceName]);
 
     const handleFilterChange = (val) => {
-        let v = Object.assign({}, val);
-        setToFilters(v);
+        setToFilters(val);
+        setShowFilters(false);
+        setMangaList([]);
+        setPage(1);
     }
 
     return (
@@ -98,11 +101,9 @@ function BrowseSource(props) {
                 <Typography variant="h6" className={classes.title}>
                     {`Browse ${props.sourceName}`}
                 </Typography>
-                <Button color="inherit">Filter</Button>
+                <Button color="inherit" onClick={() => setShowFilters(true)}>Filter</Button>
             </Topbar>
-            {/* <div className={"fixed z-50 right-0 top-0 mt-10 w-full md:w-auto"}>
-                <Filter onFilter={handleFilterChange} filters={filters} />
-            </div> */}
+            <Filter onFilter={handleFilterChange} options={filters} onClose={() => setShowFilters(false)} open={showFilters}/>
             <Box width="100vw" padding={2}>
                 <Grid container spacing={1}>
                     {mangaList.map((el, index) => (

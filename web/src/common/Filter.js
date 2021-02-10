@@ -1,87 +1,195 @@
 import React from 'react';
-import Select from './Select';
+import {
+    makeStyles,
+    Box,
+    Typography,
+    Button,
+    Dialog,
+    AppBar,
+    Toolbar,
+    IconButton,
+    Slide,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Checkbox,
+    InputLabel,
+    Select,
+    MenuItem,
+    TextField,
+    FormControl
+} from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
+    },
+    button: {
+        width: '100%',
+        marginTop: '0.5rem',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    },
+    input: {
+        width: '100%'
+    }
+}));
+
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 
 function Input(props) {
-    const { isMultiple, values, handleChange } = props;
-    const [selected, setSelected] = React.useState();
+    const classes = useStyles();
 
-    let options = [];
-    if (values) {
-        options = values.map(v => {
-            return {
-                label: v.Label,
-                value: v.Value
-            }
-        })
+    const { label, isMultiple, values, onChange, selected } = props;
+
+    if (isMultiple && values && values.length > 0) {
+        return (
+            <Accordion>
+                <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1a-content"
+                    id="panel1a-header"
+                >
+                    <Typography>{label}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <List>
+                        {values.map(v => {
+                            return (
+                                <ListItem key={v.Value} onClick={() => onChange(v.Value)}>
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            edge="start"
+                                            checked={selected ? selected.indexOf(v.Value) !== -1 : false}
+                                            disableRipple
+                                            inputProps={{ 'aria-labelledby': label.replace(' ', '-').toLowerCase() }}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText id={label.replace(' ', '-').toLowerCase()} primary={v.Label} />
+                                </ListItem>
+                            )
+                        })}
+                    </List>
+                </AccordionDetails>
+            </Accordion>
+        )
     }
-
-    const onChange = (val) => {
-        if (isMultiple) {
-            setSelected(v => [...v, val]);
-        } else {
-            setSelected(val);
-        }
-    }
-
-    React.useEffect(() => {
-        handleChange(selected);
-    }, [selected]);
-
-
     if (values && values.length > 0) {
         return (
-            <Select options={options} onChange={onChange} />
+            <FormControl className={classes.input}>
+                <InputLabel id={`${label.replace(' ', '-').toLowerCase()}-label`}>{label}</InputLabel>
+                <Select
+                    labelId={`${label.replace(' ', '-').toLowerCase()}-label`}
+                    id={label.replace(' ', '-').toLowerCase()}
+                    onChange={(e) => onChange(e.target.value)}
+                    value={selected || ""} >
+                    {values.map(v => {
+                        return (
+                            <MenuItem key={v.Value} value={v.Value}>{v.Label}</MenuItem>
+                        )
+                    })}
+                </Select>
+            </FormControl >
         )
     }
     return (
-        <input onChange={(e) => handleChange(e.target.value)} className={"w-full focus:outline-none p-1 dark:bg-gray-700 text-gray-900 dark:text-gray-100"} type="text"></input>
+        <TextField className={classes.input} label={label} value={selected || ""} onChange={(e) => onChange(e.target.value)} />
     )
 }
 
 function Section(props) {
-    const { label, isMultiple, values, field, handleChange } = props;
+    const { label, isMultiple, value, setValue, values, field } = props;
 
     const onChange = (val) => {
-        if (val) {
-            handleChange(field, val);
+        if (isMultiple) {
+            if (!value[field]) {
+                value[field] = [];
+            }
+
+            const currentIndex = value[field].indexOf(val);
+            const newSelected = [...value[field]];
+
+            if (currentIndex === -1) {
+                newSelected.push(val);
+            } else {
+                newSelected.splice(currentIndex, 1);
+            }
+
+            let obj = Object.assign({}, value);
+            obj[field] = newSelected;
+
+            setValue(obj);
+        } else {
+            let obj = Object.assign({}, value);
+            obj[field] = val;
+            
+            setValue(obj)
         }
-    }
+    };
 
     return (
-        <div className={"w-full"}>
-            <label>{label}</label>
-            <div className={"w-full bg-gray-200 dark:bg-gray-700 rounded p-1"}>
-                <Input handleChange={onChange} isMultiple={isMultiple} values={values} />
-            </div>
-        </div>
+        <Box padding={2}>
+            <Input 
+                onChange={(val) => onChange(val)} 
+                selected={value[field]} 
+                isMultiple={isMultiple} 
+                label={label} 
+                values={values} />
+        </Box>
     )
 }
 
 function Filter(props) {
-    const { filters, onFilter } = props;
-    const [toFilter, setToFilter] = React.useState({})
+    const classes = useStyles();
 
-    const handleChange = (key, val) => {
-        let obj = Object.assign({}, toFilter);
-        obj[key] = val;
-        setToFilter(obj);
-        console.log(obj)
-    }
+    const { options, onFilter, open, onClose } = props;
+
+    const [filterParam, setFilterParam] = React.useState({});
 
     return (
-        <div className={"p-2"}>
-            <div className={"shadow w-full p-4 rounded-t lg:rounded mb-0 lg:mb-2 mx-auto inset-x-0 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-50 mx-2"}>
-                <div className={"w-full flex flex-col justify-between border-b border-gray-10 dark:border-gray-900 mb-2"}>
-                    <div className={"w-full flex justify-between border-b border-gray-10 dark:border-gray-900 mb-2"}>
-                        <h1>Filters</h1>
-                    </div>
-                    {filters && filters.map(f => (
-                        <Section handleChange={handleChange} label={f.Label} isMultiple={f.IsMultiple} values={f.Values} field={f.Field} />
-                    ))}
-                    <button onClick={(e) => onFilter(toFilter)}>Search</button>
-                </div>
-            </div>
-        </div>
+        <React.Fragment>
+            <Dialog fullScreen onClose={onClose} open={open} TransitionComponent={Transition}>
+                <AppBar className={classes.appBar}>
+                    <Toolbar>
+                        <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
+                            <CloseIcon />
+                        </IconButton>
+                        <Typography variant="h6" className={classes.title}>
+                            Filters
+                        </Typography>
+                        <Button color="inherit" onClick={() => onFilter(filterParam)} aria-label="close">
+                            Filter
+                        </Button>
+                    </Toolbar>
+                </AppBar>
+                <Toolbar />
+                {options && options.map((f, i) => (
+                    <Section
+                        key={`${f.Field}-${i}`} 
+                        label={f.Label} 
+                        isMultiple={f.IsMultiple} 
+                        values={f.Values} 
+                        value={filterParam}
+                        setValue={setFilterParam}
+                        field={f.Field} />
+                ))}
+            </Dialog >
+        </React.Fragment>
     )
 }
 
