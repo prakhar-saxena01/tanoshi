@@ -41,7 +41,7 @@ jobs:
         if:  ${{ matrix.os == 'windows-latest' }}
         run: cd $Env:GITHUB_WORKSPACE\cmd\tanoshi && rice embed-go
       - name: Build
-        run: GOARCH=${{ matrix.arch }} go build -o build/${{ matrix.asset_name }} ./cmd/tanoshi
+        run: go build -o build/${{ matrix.asset_name }} ./cmd/tanoshi
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
