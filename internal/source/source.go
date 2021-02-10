@@ -66,10 +66,7 @@ func (s *Source) Initialize() error {
 	s.l.SetGlobal(luaFilterFieldTypeName, luar.NewType(s.l, FilterField{}))
 	s.l.SetGlobal(luaFilterValueTypeName, luar.NewType(s.l, FilterValue{}))
 
-	// if err := s.l.DoString(string(s.Contents)); err != nil {
-	// 	return err
-	// }
-	if err := s.l.DoFile("C:\\Users\\fadhlika\\Repos\\tanoshi-extensions\\source\\mangadex\\mangadex.lua"); err != nil {
+	if err := s.l.DoString(string(s.Contents)); err != nil {
 		return err
 	}
 
