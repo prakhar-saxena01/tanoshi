@@ -204,7 +204,7 @@ func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 
 	prevNext := PrevNext{}
 
-	err = r.db.Where("name = (?)", r.db.Table("chapters").Select("name").Where("id = ?", id)).First(&source).Error
+	err = r.db.Where("name = (?)", r.db.Table("chapters").Select("source").Where("id = ?", id)).Limit(1).Find(&source).Error
 	if err != nil {
 		return nil, err
 	}

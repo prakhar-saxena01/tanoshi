@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/faldez/tanoshi/internal/config"
@@ -22,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't get home directory, please provide path to config file: %s", err.Error())
 	}
-	var configPath *string = flag.String("config", fmt.Sprintf("%s/.config/tanoshi/config.yml", homeDir), "path to config file")
+	var configPath *string = flag.String("config", path.Join(homeDir, ".config/tanoshi/config.yml"), "path to config file")
 
 	flag.Parse()
 
@@ -47,7 +48,7 @@ func main() {
 	historyRepo := history.NewRepository(db)
 	updateRepo := update.NewRepository(db)
 
-	sourceManager, err := source.NewManager(sourceRepo)
+	sourceManager, err := source.NewManager(sourceRepo, cfg.LocalDir)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

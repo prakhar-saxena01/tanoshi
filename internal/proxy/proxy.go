@@ -19,35 +19,36 @@ func NewProxy() *Proxy {
 }
 
 func (p *Proxy) Get(url string) ([]byte, string, error) {
-	if strings.HasPrefix(url, "/") {
-		archivePath := path.Dir(url)
-		filePath := path.Base(url)
-		targetPath := path.Join(os.TempDir(), filePath)
-
-		if err := archiver.DefaultZip.Extract(archivePath, filePath, os.TempDir()); err != nil {
+	if strings.HasPrefix(url, "http") {
+		res, err := http.Get(url)
+		if err != nil {
 			return nil, "", err
 		}
-		defer os.RemoveAll(targetPath)
+		defer res.Body.Close()
 
-		data, err := ioutil.ReadFile(path.Join(targetPath, filePath))
+		contentType := res.Header.Get("Content-Type")
+		data, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return nil, "", err
 		}
 
-		return data, fmt.Sprintf("image/%s", path.Ext(filePath)), nil
+		return data, contentType, nil
 	}
 
-	res, err := http.Get(url)
+	archivePath := path.Dir(url)
+	filePath := path.Base(url)
+	targetPath := path.Join(os.TempDir(), filePath)
+
+	if err := archiver.DefaultZip.Extract(archivePath, filePath, os.TempDir()); err != nil {
+		return nil, "", err
+	}
+	defer os.RemoveAll(targetPath)
+
+	data, err := ioutil.ReadFile(path.Join(targetPath, filePath))
 	if err != nil {
 		return nil, "", err
 	}
-	defer res.Body.Close()
 
-	contentType := res.Header.Get("Content-Type")
-	data, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, "", err
-	}
+	return data, fmt.Sprintf("image/%s", path.Ext(filePath)), nil
 
-	return data, contentType, nil
 }

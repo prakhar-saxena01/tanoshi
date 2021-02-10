@@ -77,7 +77,7 @@ function BrowseSource(props) {
                 if (response.status === 200) {
                     return response.json()
                 } else {
-                    return {}
+                    return null
                 }
             })
             .then((data) => {

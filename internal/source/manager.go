@@ -20,13 +20,13 @@ type Manager struct {
 	sources map[string]SourceInterface
 }
 
-func NewManager(repo *Repository) (*Manager, error) {
+func NewManager(repo *Repository, localDir string) (*Manager, error) {
 	sources, err := repo.GetSources()
 	if err != nil {
 		return nil, err
 	}
 
-	sources["local"] = NewLocal("/Users/fadhlika/Downloads/Manga")
+	sources["local"] = NewLocal(localDir)
 	for name := range sources {
 		if err := sources[name].Initialize(); err != nil {
 			log.Println(err.Error())
