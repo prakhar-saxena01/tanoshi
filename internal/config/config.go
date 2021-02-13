@@ -2,10 +2,8 @@ package config
 
 import (
 	"io/ioutil"
-	"math/rand"
 	"os"
-	"path/filepath"
-	"time"
+	"path"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -15,22 +13,31 @@ type Config struct {
 	Port         string `yaml:"port"`
 	DatabaseURL  string `yaml:"database_url"`
 	ExtensionURL string `yaml:"extension_url"`
+	LocalDir     string `yaml:"local_dir"`
 }
 
-func defaultConfig(path string) Config {
-	rand.Seed(time.Now().UnixNano())
+func defaultConfig() Config {
+	homeDir, _ := os.UserHomeDir()
+	localDir := path.Join(homeDir, ".config/tanoshi/manga")
+	dbPath := path.Join(homeDir, ".config/tanoshi/tanoshi.db")
+
+	os.MkdirAll(localDir, 0644)
 
 	return Config{
-		Port:        "80",
-		DatabaseURL: "sqlite://" + filepath.Dir(path) + "/tanoshi.db",
+		Port:         "80",
+		DatabaseURL:  "sqlite://" + dbPath,
+		ExtensionURL: "https://faldez.github.io/tanoshi-extensions/",
+		LocalDir:     localDir,
 	}
 }
 
 func Load(path string) (Config, error) {
 	f, err := ioutil.ReadFile(path)
 	if err != nil {
-		cfg := defaultConfig(path)
+		cfg := defaultConfig()
+		cfg.path = path
 		cfg.Save()
+		return cfg, nil
 	}
 
 	var config Config

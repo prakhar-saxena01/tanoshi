@@ -1,8 +1,0 @@
-GET api.mangadex.org/v2
-
-###
-GET api.mangadex.org/v2/chapter/1196850
-
-###
-GET api.mangadex.org/v2/manga/46401/chapters
-

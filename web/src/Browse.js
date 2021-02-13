@@ -1,21 +1,32 @@
 import React from 'react';
 import Navbar from './common/Navbar';
+import { makeStyles } from '@material-ui/core';
 
-// eslint-disable-next-line
-function Search(props) {
-    return (
-        <div className={"w-full mb-2 ml-0 inline-flex"}>
-            <input className={"border rounded outline-none w-full mr-2 p-1"} placeholder={"Search"} type={"text"} onKeyDown={(e) => { if (e.key === "Enter") { props.onChange(e) } }}></input>
-            <button onClick={props.onCancel}>Cancel</button>
-        </div>
-    )
-}
+const useStyles = makeStyles((theme) => ({
+    root: {
+        display: 'flex',
+    },
+    menuButton: {
+        marginRight: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
+    },
+    content: {
+        flexGrow: 1,
+        padding: theme.spacing(1),
+    },
+}));
 
 function Browse(props) {
+    const classes = useStyles();
+
     return (
-        <div className={"main"}>
-            {props.children}
+        <div className={classes.root}>
             <Navbar />
+            <div className={classes.content}>
+                {props.children}
+            </div>
         </div>
     )
 }

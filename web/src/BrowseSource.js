@@ -1,9 +1,10 @@
 import React from 'react';
-import Cover from './common/Cover';
+import MangaList from './common/MangaList';
 import Topbar from './common/Topbar';
-import { useMatch } from '@reach/router';
+import { useMatch, navigate } from '@reach/router';
 import Filter from './common/Filter';
-import { makeStyles, Box, Grid, Typography, Button } from '@material-ui/core';
+import { makeStyles, Typography, Button, BottomNavigation, IconButton } from '@material-ui/core';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -20,6 +21,9 @@ const useStyles = makeStyles((theme) => ({
         marginTop: '0.5rem',
         marginLeft: 'auto',
         marginRight: 'auto',
+    },
+    bottomNavigation: {
+        backgroundColor: 'transparent'
     }
 }));
 
@@ -77,7 +81,7 @@ function BrowseSource(props) {
                 if (response.status === 200) {
                     return response.json()
                 } else {
-                    return {}
+                    return null
                 }
             })
             .then((data) => {
@@ -98,24 +102,20 @@ function BrowseSource(props) {
     return (
         <React.Fragment>
             <Topbar>
+                <IconButton color='inherit' onClick={() => navigate(-1)}>
+                    <ArrowBackIosIcon />
+                </IconButton>
                 <Typography variant="h6" className={classes.title}>
                     {`Browse ${props.sourceName}`}
                 </Typography>
                 <Button color="inherit" onClick={() => setShowFilters(true)}>Filter</Button>
             </Topbar>
-            <Filter onFilter={handleFilterChange} options={filters} onClose={() => setShowFilters(false)} open={showFilters}/>
-            <Box width="100vw" padding={2}>
-                <Grid container spacing={1}>
-                    {mangaList.map((el, index) => (
-                        <Grid key={index} item xs={4} md={2} lg={1}>
-                            <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
-                        </Grid>
-                    ))}
-                </Grid>
-                <Button className={classes.button} disabled={isLoading} onClick={() => setPage(page + 1)}>
-                    {isLoading ? "Loading..." : "Load More"}
-                </Button>
-            </Box>
+            <Filter onFilter={handleFilterChange} options={filters} onClose={() => setShowFilters(false)} open={showFilters} />
+            <MangaList mangaList={mangaList} />
+            <Button className={classes.button} disabled={isLoading} onClick={() => setPage(page + 1)}>
+                {isLoading ? "Loading..." : "Load More"}
+            </Button>
+            <BottomNavigation className={classes.bottomNavigation} />
         </React.Fragment>
     )
 }

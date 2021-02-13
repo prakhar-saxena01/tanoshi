@@ -11,6 +11,7 @@ function ReaderSetting(props) {
     const [displayMode, setDisplayMode] = React.useState();
     const [direction, setDirection] = React.useState();
     const [background, setBackground] = React.useState();
+    const [fit, setFit] = React.useState();
 
 
     var settingPath = props.mangaId ? `/${props.mangaId}` : "";
@@ -27,6 +28,7 @@ function ReaderSetting(props) {
         setDisplayMode(getItem(`displayMode`));
         setDirection(getItem(`direction`));
         setBackground(getItem(`background`));
+        setFit(getItem(`fit`));
     })
     
     React.useEffect(() => {
@@ -57,6 +59,13 @@ function ReaderSetting(props) {
         }
         // eslint-disable-next-line
     }, [settingPath, background])
+    React.useEffect(() => {
+        localStorage.setItem(`fit${settingPath}`, fit);
+        if (props.setFit) {
+            props.setFit(fit);
+        }
+        // eslint-disable-next-line
+    }, [settingPath, fit])
 
     return (
         <React.Fragment>
@@ -110,7 +119,7 @@ function ReaderSetting(props) {
                     </ListItemSecondaryAction>
                 </ListItem>
                 <ListItem button className={"w-full"}>
-                    <ListItemText primary="background" />
+                    <ListItemText primary="Background" />
                     <ListItemSecondaryAction>
                         <Select
                             value={background}
@@ -121,6 +130,25 @@ function ReaderSetting(props) {
                             </MenuItem >
                             <MenuItem value="black">
                                 Black
+                            </MenuItem >
+                        </Select>
+                    </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem button className={"w-full"}>
+                    <ListItemText primary="Fit" />
+                    <ListItemSecondaryAction>
+                        <Select
+                            value={fit}
+                            onChange={(event) => setFit(event.target.value)}
+                        >
+                            <MenuItem value="width">
+                                Width
+                            </MenuItem >
+                            <MenuItem value="height">
+                                Height
+                            </MenuItem >
+                            <MenuItem value="original">
+                                Original
                             </MenuItem >
                         </Select>
                     </ListItemSecondaryAction>

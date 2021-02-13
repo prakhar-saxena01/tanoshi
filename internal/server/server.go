@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	rice "github.com/GeertJohan/go.rice"
+	"github.com/faldez/tanoshi/internal/config"
 	"github.com/faldez/tanoshi/internal/history"
 	"github.com/faldez/tanoshi/internal/library"
 	"github.com/faldez/tanoshi/internal/proxy"
@@ -24,6 +25,7 @@ type Server struct {
 	historyHandler *history.Handler
 	updateHandler  *update.Handler
 	proxy          *proxy.Proxy
+	configHandler  *config.Handler
 	r              *echo.Echo
 	requestGroup   singleflight.Group
 	box            *rice.Box
@@ -34,10 +36,11 @@ func NewServer(sourceHandler *source.Handler,
 	historyHandler *history.Handler,
 	updateHandler *update.Handler,
 	proxy *proxy.Proxy,
+	configHandler *config.Handler,
 	box *rice.Box) Server {
 	r := echo.New()
 	var requestGroup singleflight.Group
-	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, proxy, r, requestGroup, box}
+	return Server{sourceHandler, libraryHandler, historyHandler, updateHandler, proxy, configHandler, r, requestGroup, box}
 }
 
 func (s *Server) RegisterHandler() {
@@ -93,7 +96,7 @@ func (s *Server) RegisterHandler() {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 		}
-		return c.JSON(http.StatusOK, config)
+		return c.String(http.StatusOK, "OK")
 	})
 	api.GET("/source/:name", func(c echo.Context) error {
 		name := c.Param("name")
@@ -305,6 +308,25 @@ func (s *Server) RegisterHandler() {
 		}
 		c.Response().Header().Add("Cache-Control", "max-age=31536000")
 		return c.Blob(http.StatusOK, contentType, data)
+	})
+	api.GET("/config", func(c echo.Context) error {
+		cfg, err := s.configHandler.GetConfig()
+		if err != nil {
+			return err
+		}
+		return c.JSON(200, cfg)
+	})
+	api.PUT("/config", func(c echo.Context) error {
+		cfg := new(config.Config)
+		if err := c.Bind(cfg); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorMessage{err.Error()})
+		}
+
+		err := s.configHandler.SaveConfig(cfg)
+		if err != nil {
+			return err
+		}
+		return c.String(200, "OK")
 	})
 
 	assetHandler := http.FileServer(s.box.HTTPBox())

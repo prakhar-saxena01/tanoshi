@@ -28,7 +28,7 @@ type SourceInterface interface {
 
 type Source struct {
 	gorm.Model
-	Name       string  `gorm:"unique_index"`
+	Name       string  `gorm:"uniqueIndex"`
 	Contents   []byte  `json:"-"`
 	Config     *Config `json:"-"`
 	Installed  bool    `gorm:"-"`
@@ -47,6 +47,10 @@ func NewSource(name string, contents []byte, icon string) SourceInterface {
 
 // Initialize initialize source from specified path
 func (s *Source) Initialize() error {
+	if s.l != nil {
+		s.l.Close()
+	}
+
 	s.l = lua.NewState()
 	if s.Config == nil {
 		s.Config = &Config{
@@ -66,10 +70,7 @@ func (s *Source) Initialize() error {
 	s.l.SetGlobal(luaFilterFieldTypeName, luar.NewType(s.l, FilterField{}))
 	s.l.SetGlobal(luaFilterValueTypeName, luar.NewType(s.l, FilterValue{}))
 
-	// if err := s.l.DoString(string(s.Contents)); err != nil {
-	// 	return err
-	// }
-	if err := s.l.DoFile("C:\\Users\\fadhlika\\Repos\\tanoshi-extensions\\source\\mangadex\\mangadex.lua"); err != nil {
+	if err := s.l.DoString(string(s.Contents)); err != nil {
 		return err
 	}
 

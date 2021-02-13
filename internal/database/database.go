@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"log"
 	"strings"
 
 	"gorm.io/driver/postgres"
@@ -12,7 +11,6 @@ import (
 )
 
 func Open(url string) (*gorm.DB, error) {
-	log.Println(url)
 	var dialect gorm.Dialector
 	if strings.HasPrefix(url, "sqlite") {
 		dialect = sqlite.Open(strings.TrimPrefix(url, "sqlite://"))
@@ -22,7 +20,7 @@ func Open(url string) (*gorm.DB, error) {
 		return nil, errors.New("only support sqlite and postgresql")
 	}
 	db, err := gorm.Open(dialect, &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Error),
 	})
 	return db, err
 }

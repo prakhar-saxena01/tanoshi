@@ -5,10 +5,8 @@ import {
     Typography,
     Button,
     Dialog,
-    AppBar,
-    Toolbar,
-    IconButton,
-    Slide,
+    DialogTitle,
+    DialogActions,
     Accordion,
     AccordionSummary,
     AccordionDetails,
@@ -23,12 +21,11 @@ import {
     TextField,
     FormControl
 } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        flexGrow: 1,
+        minWidth: '50%',
     },
     menuButton: {
         marginRight: theme.spacing(2),
@@ -46,11 +43,6 @@ const useStyles = makeStyles((theme) => ({
         width: '100%'
     }
 }));
-
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
 
 function Input(props) {
     const classes = useStyles();
@@ -130,61 +122,49 @@ function Section(props) {
                 newSelected.splice(currentIndex, 1);
             }
 
-            setValue({...value, [field]: newSelected});
+            setValue({ ...value, [field]: newSelected });
         } else {
-            
-            setValue({...value, [field]: val});
+
+            setValue({ ...value, [field]: val });
         }
     };
 
     return (
         <Box padding={2}>
-            <Input 
-                onChange={(val) => onChange(val)} 
-                selected={value[field]} 
-                isMultiple={isMultiple} 
-                label={label} 
+            <Input
+                onChange={(val) => onChange(val)}
+                selected={value[field]}
+                isMultiple={isMultiple}
+                label={label}
                 values={values} />
         </Box>
     )
 }
 
 function Filter(props) {
-    const classes = useStyles();
-
     const { options, onFilter, open, onClose } = props;
 
     const [filterParam, setFilterParam] = React.useState({});
 
     return (
-        <React.Fragment>
-            <Dialog fullScreen onClose={onClose} open={open} TransitionComponent={Transition}>
-                <AppBar className={classes.appBar}>
-                    <Toolbar>
-                        <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
-                            <CloseIcon />
-                        </IconButton>
-                        <Typography variant="h6" className={classes.title}>
-                            Filters
-                        </Typography>
-                        <Button color="inherit" onClick={() => onFilter(filterParam)} aria-label="close">
-                            Filter
-                        </Button>
-                    </Toolbar>
-                </AppBar>
-                <Toolbar />
-                {options && options.map((f, i) => (
-                    <Section
-                        key={`${f.Field}-${i}`} 
-                        label={f.Label} 
-                        isMultiple={f.IsMultiple} 
-                        values={f.Values} 
-                        value={filterParam}
-                        setValue={setFilterParam}
-                        field={f.Field} />
-                ))}
-            </Dialog >
-        </React.Fragment>
+        <Dialog fullWidth onClose={onClose} open={open}>
+            <DialogTitle>Filter</DialogTitle>
+            {options && options.map((f, i) => (
+                <Section
+                    key={`${f.Field}-${i}`}
+                    label={f.Label}
+                    isMultiple={f.IsMultiple}
+                    values={f.Values}
+                    value={filterParam}
+                    setValue={setFilterParam}
+                    field={f.Field} />
+            ))}
+            <DialogActions>
+                <Button color="primary" onClick={() => onFilter(filterParam)} aria-label="close">
+                    Search
+                    </Button>
+            </DialogActions>
+        </Dialog >
     )
 }
 

@@ -1,6 +1,5 @@
 import React from 'react';
-import Cover from './common/Cover';
-import { Grid, Box } from '@material-ui/core';
+import MangaList from './common/MangaList';
 
 
 function LibraryManga(props) {
@@ -22,15 +21,7 @@ function LibraryManga(props) {
     })
 
     return (
-        <Box width="100vw" padding={1}>
-            <Grid container direction="row" justify="flex-start" alignItems="flex-start" spacing={1}>
-            {mangaList && mangaList.map((el, index) => (
-                <Grid key={index} item xs={4} md={2} lg={1}>
-                    <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
-                </Grid>
-            ))}
-        </Grid>
-        </Box>
+        <MangaList mangaList={mangaList} />
     )
 }
 

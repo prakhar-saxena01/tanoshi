@@ -60,7 +60,7 @@ func (r *Repository) UpdateSource(src SourceInterface) error {
 	}).Create(s).Error
 }
 
-func (r *Repository) SaveSourceConfig(name string, config *Config) error {
+func (r *Repository) SaveSourceConfig(name string, config *Config) (*Config, error) {
 	langs := []string{}
 	for k, v := range config.Language {
 		if v {
@@ -70,20 +70,25 @@ func (r *Repository) SaveSourceConfig(name string, config *Config) error {
 	tx := r.db.Begin()
 	if err := tx.Table("sources").Where("name = ?", name).Update("config", &config).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if err := tx.Delete(&Chapter{}, "source = ? AND language NOT IN ?", name, langs).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	if err := tx.Table("chapters").Where("language IN ?", langs).Update("deleted_at", nil).Error; err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
-	return tx.Commit().Error
+	if err := tx.Table("sources").Where("name = ?", name).Update("config", &config).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return config, tx.Commit().Error
 }
 
 func (r *Repository) UpdateManga(m *Manga) (*Manga, error) {
@@ -204,7 +209,7 @@ func (r *Repository) GetChapterByID(id uint) (*Chapter, error) {
 
 	prevNext := PrevNext{}
 
-	err = r.db.Where("name = (?)", r.db.Table("chapters").Select("name").Where("id = ?", id)).First(&source).Error
+	err = r.db.Where("name = (?)", r.db.Table("chapters").Select("source").Where("id = ?", id)).Limit(1).Find(&source).Error
 	if err != nil {
 		return nil, err
 	}

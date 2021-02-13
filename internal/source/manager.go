@@ -20,13 +20,13 @@ type Manager struct {
 	sources map[string]SourceInterface
 }
 
-func NewManager(repo *Repository) (*Manager, error) {
+func NewManager(repo *Repository, localDir string) (*Manager, error) {
 	sources, err := repo.GetSources()
 	if err != nil {
 		return nil, err
 	}
 
-	sources["local"] = NewLocal("/Users/fadhlika/Downloads/Manga")
+	sources["local"] = NewLocal(localDir)
 	for name := range sources {
 		if err := sources[name].Initialize(); err != nil {
 			log.Println(err.Error())
@@ -193,7 +193,19 @@ func (sm *Manager) GetSourceFilters(name string) ([]*FilterField, error) {
 }
 
 func (sm *Manager) UpdateSourceConfig(name string, c *Config) error {
-	return sm.repo.SaveSourceConfig(name, c)
+	s, ok := sm.sources[name].(*Source)
+	if !ok {
+		return errors.New("No source")
+	}
+
+	c.Header = s.Config.Header
+	cfg, err := sm.repo.SaveSourceConfig(name, c)
+	if err != nil {
+		return err
+	}
+
+	s.Config = cfg
+	return nil
 }
 
 func (sm *Manager) Get(name string) SourceInterface {
@@ -326,7 +338,7 @@ func (sm *Manager) GetChapter(chapterID uint) (*Chapter, error) {
 }
 
 func (sm *Manager) Login(name, username, password, twoFactor string, remember bool) error {
-	s, ok := sm.sources[name]
+	s, ok := sm.sources[name].(*Source)
 	if !ok {
 		return errors.New("No source")
 	}
@@ -335,10 +347,8 @@ func (sm *Manager) Login(name, username, password, twoFactor string, remember bo
 		return err
 	}
 
-	if s, ok := sm.sources[name].(*Source); ok {
-		if err := sm.repo.SaveSourceConfig(name, s.Config); err != nil {
-			return err
-		}
+	if _, err := sm.repo.SaveSourceConfig(name, s.Config); err != nil {
+		return err
 	}
 
 	return nil

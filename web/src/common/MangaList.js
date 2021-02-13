@@ -1,14 +1,22 @@
-import React from '@react';
+import React from 'react';
 import Cover from './Cover';
+import { Grid, Box } from '@material-ui/core';
 
 function MangaList(props) {
-    const {mangaList} = props;
+    const { mangaList } = props;
 
     return (
-        <div>{mangaList && mangaList.map((el, index) => (
-            <Cover key={index} id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
-        ))}
-        </div>
+        <Box width="100%" padding={1}>
+            <Grid container direction="row" justify="flex-start" alignItems="flex-start" spacing={1}>
+                {mangaList && mangaList.map((el, index) => (
+                    <Grid key={index} item xs={4} sm={2} lg={1}>
+                        <Cover id={el.ID} title={el.Title} coverUrl={el.CoverURL} isFavorite={el.IsFavorite} />
+                    </Grid>
+                ))}
+
+            </Grid>
+
+        </Box>
     )
 }
 

@@ -3,7 +3,7 @@ import { useAlert } from './common/Alert';
 import {
     makeStyles,
     Button,
-    ListItemSecondaryAction,
+    ListItemIcon,
     ListItemText,
     ListItem,
     List,
@@ -13,7 +13,7 @@ import {
     FormControlLabel,
     FormControl,
     Checkbox
-} from '@material-ui/core'; 
+} from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     avatar: {
@@ -32,20 +32,20 @@ function Input(props) {
     const render = () => {
         switch (typeof props.val) {
             case 'boolean':
-                return <Switch onChange={(e) => props.onChange(e.target.checked)} checked={props.val} />
+                return (
+                    <ListItem button onClick={(e) => props.onChange(props.label, !props.val)}>
+                        <ListItemText primary={props.label} />
+                        <ListItemIcon>
+                            <Switch checked={props.val} />
+                        </ListItemIcon>
+                    </ListItem>
+                )
             default:
                 return ""
         }
     }
 
-    return (
-        <ListItem button>
-            <ListItemText primary={props.label} />
-            <ListItemSecondaryAction>
-                {render()}
-            </ListItemSecondaryAction>
-        </ListItem>
-    )
+    return render();
 }
 
 function SettingSource(props) {
@@ -100,7 +100,10 @@ function SettingSource(props) {
             });
     }
 
-    const save = () => {
+    React.useEffect(() => {
+        if (!config) {
+            return
+        }
         fetch(`/api/source/${props.sourceName}/config`, {
             method: "PUT",
             headers: {
@@ -110,16 +113,16 @@ function SettingSource(props) {
         })
             .then((response) => {
                 if (response.status !== 200) {
-                    setAlert('error', 'Set config error');
+                    // setAlert('error', 'Set config error');
                 } else {
-                    setAlert('success', 'Set config success');
+                    // setAlert('success', 'Set config success');
                 }
             })
             .catch((e) => {
                 console.log(e);
-                setAlert('error', `Set config error: ${e}`)
+                // setAlert('error', `Set config error: ${e}`)
             });
-    }
+    }, [props.sourceName, config])
 
 
     return (
@@ -129,7 +132,7 @@ function SettingSource(props) {
             </Typography>
             <FormControl fullWidth>
                 <TextField className={classes.textField} id="username" label="Username" variant="outlined" onChange={(e) => setUsername(e.target.value)} />
-                <TextField className={classes.textField} id="password" label="Password" variant="outlined" onChange={(e) => setPassword(e.target.value)} />
+                <TextField className={classes.textField} type="password" id="password" label="Password" variant="outlined" onChange={(e) => setPassword(e.target.value)} />
                 <TextField className={classes.textField} id="two_factor" label="Two factor" variant="outlined" onChange={(e) => setTwoFactor(e.target.value)} />
                 <FormControlLabel className={classes.textField} control={<Checkbox name="rememberMe" checked={remember} onChange={(e) => setRemember(e.target.checked)} />} label="Remember Me" />
                 <Button className={classes.button} variant="contained" onClick={() => login()}>Submit</Button>
@@ -140,10 +143,9 @@ function SettingSource(props) {
             <FormControl fullWidth>
                 {config && <List>
                     {Object.keys(config.Language).map((k) => (
-                        <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(value) => { const cfg = Object.assign({}, config); cfg.Language[k] = value; setConfig(cfg) }} />
+                        <Input key={k} id={`lang-${k}`} label={k} val={config.Language[k]} onChange={(field, value) => { const cfg = Object.assign({}, config); cfg.Language[field] = value; setConfig(cfg) }} />
                     ))}
                 </List>}
-                <Button className={classes.button} variant="contained" onClick={() => save()}>Submit</Button>
             </FormControl>
             {alert}
         </React.Fragment>

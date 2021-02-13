@@ -27,6 +27,12 @@ function App() {
       createMuiTheme({
         palette: {
           type: prefersDarkMode ? 'dark' : 'light',
+          primary: {
+            main: '#5b749b'
+          },
+          secondary: {
+            main: '#f50057'
+          }
         },
       }),
     [prefersDarkMode],
@@ -35,7 +41,6 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className={"App"}>
         <Router>
           <Library path="/" >
             <LibraryManga path="/" />
@@ -56,7 +61,6 @@ function App() {
             <SettingSource path="source/:sourceName" />
           </Settings>
         </Router>
-      </div>
     </ThemeProvider>
   );
 }

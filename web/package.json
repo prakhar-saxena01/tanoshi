@@ -26,7 +26,8 @@
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest"
+      "react-app/jest",
+      "plugin:react-hooks/recommended"
     ]
   },
   "browserslist": {
@@ -42,7 +43,8 @@
     ]
   },
   "devDependencies": {
-    "@reach/router": "^1.3.4"
+    "@reach/router": "^1.3.4",
+    "eslint-plugin-react-hooks": "^4.2.0"
   },
   "proxy": "http://localhost:8080"
 }
