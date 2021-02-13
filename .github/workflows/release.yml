@@ -16,19 +16,9 @@ jobs:
         - os: ubuntu-latest
           arch: amd64
           asset_name: tanoshi-linux-amd64
-          standalone: false
-        - os: ubuntu-latest
-          arch: amd64
-          asset_name: tanoshi-desktop-linux-amd64
-          standalone: true
         - os: windows-latest
           arch: amd64
           asset_name: tanoshi-windows-amd64.exe
-          standalone: false
-        - os: windows-latest
-          arch: amd64
-          asset_name: tanoshi-desktop-windows-amd64.exe
-          standalone: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -43,28 +33,12 @@ jobs:
           go get github.com/akavel/rsrc
       - name: Rice embed
         if:  ${{ matrix.os != 'windows-latest' }}
-        run: cd $GITHUB_WORKSPACE/cmd/tanoshi && /home/runner/go/bin/rice embed-go
+        run: cd cmd/tanoshi && /home/runner/go/bin/rice embed-go
       - name: Rice embed Windows
         if:  ${{ matrix.os == 'windows-latest' }}
         run: cd cmd\tanoshi && rice embed-go
-      - name: Install package
-        if:  ${{ matrix.os == 'ubuntu-latest' }}
-        run: sudo apt update && sudo apt install -y gtk+-3.0 webkit2gtk-4.0
       - name: Build
-        if:  ${{ matrix.standalone == false }}
-        run: go build -tags headless -o build/${{ matrix.asset_name }} ./cmd/tanoshi
-      - name: Setup MinGW
-        if:  ${{ matrix.standalone == true && matrix.os == 'windows-latest' }} 
-        uses: egor-tensin/setup-mingw@v2
-      - name: rsrc
-        if:  ${{ matrix.standalone == true && matrix.os == 'windows-latest' }} 
-        run: rsrc -manifest build\windows\tanoshi.exe.manifest -ico assets\tanoshi.ico -o cmd\tanoshi\tanoshi.syso
-      - name: Build Desktop Windows
-        if:  ${{ matrix.standalone == true && matrix.os == 'windows-latest' }} 
-        run: go build -tags desktop -ldflags '-H windowsgui' -o build/${{ matrix.asset_name }} ./cmd/tanoshi
-      - name: Build Desktop
-        if:  ${{ matrix.standalone == true && matrix.os != 'windows-latest' }} 
-        run: go build -tags desktop -o build/${{ matrix.asset_name }} ./cmd/tanoshi
+        run: go build -o build/${{ matrix.asset_name }} ./cmd/tanoshi
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:

@@ -30,15 +30,6 @@ for local manga, directory structure needs to be
     |_ Series 2 Chapter2.cbz    
 ```
 
-### Standalone
-### Windows
-
-On windows, localhost access is blocked by default, to enable run below command on command prompt as administrator
-```
-CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy"
-```
-It's also necessary to download both dlls in [build/windows](build/windows) and put theme in same directory as `tanoshi-desktop`
-
 ## Screenshot
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.20.38.png)
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.23.41.png)
