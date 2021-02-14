@@ -23,7 +23,8 @@ const useStyles = makeStyles((theme) => ({
         marginRight: 'auto',
     },
     bottomNavigation: {
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
+        marginBottom: 'env(safe-area-inset-bottom)'
     }
 }));
 

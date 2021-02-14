@@ -32,10 +32,6 @@ const useStyles = makeStyles((theme) => ({
         paddingBottom: 'env(safe-area-inset-bottom)',
         zIndex: theme.zIndex.drawer + 1,
     },
-    padding: {
-        backgroundColor: 'transparent',
-        marginBottom: 'env(safe-area-inset-bottom)'
-    },
     drawer: {
         width: drawerWidth,
         flexShrink: 0,
@@ -89,7 +85,6 @@ function BottomNavbar() {
                 <BottomNavigationAction label="History" value="history" onClick={() => navigate("/history")} icon={<HistoryIcon />} />
                 <BottomNavigationAction label="Settings" value="settings" onClick={() => navigate("/settings")} icon={<SettingsIcon />} />
             </BottomNavigation>
-            <BottomNavigation className={clasess.padding} />
         </React.Fragment>
     )
 }

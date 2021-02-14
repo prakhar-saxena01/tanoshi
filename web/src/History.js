@@ -6,7 +6,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
-import { Typography } from '@material-ui/core';
+import { Typography, BottomNavigation } from '@material-ui/core';
 
 const useStyles = makeStyles({
     avatar: {
@@ -17,6 +17,10 @@ const useStyles = makeStyles({
         marginTop: '0.5rem',
         marginLeft: 'auto',
         marginRight: 'auto',
+    },
+    bottomNavigation: {
+        backgroundColor: 'transparent',
+        marginBottom: 'env(safe-area-inset-bottom)'
     }
   });
 
@@ -47,7 +51,7 @@ function History() {
         let today = Date.now();
         let read = new Date(at);
         let diff = Math.abs(today - read);
-        let days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        let days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
         if (days === 0) {
             return "Today";
@@ -88,6 +92,7 @@ function History() {
                     {disableLoadMore ? "No More" : "Load More"}
                 </Button>
             </List>
+            <BottomNavigation className={classes.bottomNavigation} />
         </React.Fragment>
     )
 }

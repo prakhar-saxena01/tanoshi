@@ -6,7 +6,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
-import { Typography } from '@material-ui/core';
+import { Typography, BottomNavigation } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     avatar: {
@@ -17,6 +17,10 @@ const useStyles = makeStyles((theme) => ({
         marginTop: '0.5rem',
         marginLeft: 'auto',
         marginRight: 'auto',
+    },
+    bottomNavigation: {
+        backgroundColor: 'transparent',
+        marginBottom: 'env(safe-area-inset-bottom)'
     }
   }));
   
@@ -88,6 +92,7 @@ function Update() {
                     {disableLoadMore ? "No More" : "Load More"}
                 </Button>
             </List>
+            <BottomNavigation className={classes.bottomNavigation} />
         </React.Fragment>
     )
 }
