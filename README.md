@@ -30,6 +30,20 @@ for local manga, directory structure needs to be
     |_ Series 2 Chapter2.cbz    
 ```
 
+## Linux autostart
+systemd service example
+```
+[Unit]
+Description=Selfhosted web manga reader
+
+[Service]
+ExecStart=/usr/local/bin/tanoshi-linux-amd64
+User=User
+
+[Install]
+WantedBy=multi-user.target
+```
+
 ## Screenshot
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.20.38.png)
 ![](assets/Screen%20Shot%202021-01-31%20at%2016.23.41.png)
