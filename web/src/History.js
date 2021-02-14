@@ -6,11 +6,11 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
-import { Typography, BottomNavigation } from '@material-ui/core';
+import { Typography, BottomNavigation, ListSubheader } from '@material-ui/core';
 
 const useStyles = makeStyles({
     avatar: {
-      marginRight: '0.5rem',
+        marginRight: '0.5rem',
     },
     button: {
         width: '100%',
@@ -22,12 +22,13 @@ const useStyles = makeStyles({
         backgroundColor: 'transparent',
         marginBottom: 'env(safe-area-inset-bottom)'
     }
-  });
+});
 
 function History() {
     const classes = useStyles();
 
     const [history, setHistory] = React.useState([]);
+    const [historyMap, setHistoryMap] = React.useState({});
     const [page, setPage] = React.useState(1);
     const [disableLoadMore, setDisableLoadMore] = React.useState(false);
 
@@ -46,6 +47,21 @@ function History() {
                 console.log(e);
             });
     }, [page]);
+
+    React.useEffect(() => {
+        if (history.length === 0) {
+            return
+        }
+
+        let map = history.reduce((m, u) => {
+            if (!m[calculate_days(u.ReadAt)]) {
+                m[calculate_days(u.ReadAt)] = [];
+            }
+            m[calculate_days(u.ReadAt)].push(u);
+            return m;
+        }, {});
+        setHistoryMap(map);
+    }, [history])
 
     const calculate_days = (at) => {
         let today = Date.now();
@@ -68,30 +84,41 @@ function History() {
 
     return (
         <React.Fragment>
-            <List>
-                {history && history.map((u, i) => (
-                    <ListItem button key={i} onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
-                        <Avatar className={classes.avatar} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`}/>
-                        <ListItemText
-                            primary={u.MangaTitle}
-                            secondary={
-                                <React.Fragment>
-                                    <Typography component={'span'} variant="subtitle1">
-                                        {`${u.ChapterTitle} - ${u.ChapterNumber}`}
-                                        <br></br>
-                                    </Typography>
-                                    <Typography component={'span'} variant="subtitle2">
-                                        {calculate_days(u.ReadAt)}
-                                    </Typography>
-                                </React.Fragment>
-                            }
-                        />
-                    </ListItem>
-                ))}
-                <Button disabled={disableLoadMore} className={classes.button} onClick={(e) => setPage(page + 1)}>
-                    {disableLoadMore ? "No More" : "Load More"}
-                </Button>
-            </List>
+            {historyMap && Object.keys(historyMap).map((key) => {
+                return (
+                    <List key={key} subheader={
+                        <ListSubheader component="div" id="nested-list-subheader">
+                            {key}
+                        </ListSubheader>
+                    }>
+                        {
+                            historyMap[key].map((u, i) => (
+
+                                <ListItem button key={i} onClick={() => navigate(`/chapter/${u.ChapterID}`)}>
+                                    <Avatar className={classes.avatar} alt={u.MangaTitle} src={`/api/proxy?url=${u.CoverURL}`} />
+                                    <ListItemText
+                                        primary={u.MangaTitle}
+                                        secondary={
+                                            <React.Fragment>
+                                                <Typography component={'span'} variant="subtitle1">
+                                                    {`${u.ChapterTitle} - ${u.ChapterNumber}`}
+                                                    <br></br>
+                                                </Typography>
+                                                <Typography component={'span'} variant="subtitle2">
+                                                    {calculate_days(u.ReadAt)}
+                                                </Typography>
+                                            </React.Fragment>
+                                        }
+                                    />
+                                </ListItem>
+                            ))
+                        }
+                    </List>
+                )
+            })}
+            <Button disabled={disableLoadMore} className={classes.button} onClick={(e) => setPage(page + 1)}>
+                {disableLoadMore ? "No More" : "Load More"}
+            </Button>
             <BottomNavigation className={classes.bottomNavigation} />
         </React.Fragment>
     )
