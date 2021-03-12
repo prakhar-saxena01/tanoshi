@@ -53,12 +53,11 @@ func main() {
 	historyRepo := history.NewRepository(db)
 	updateRepo := update.NewRepository(db)
 
-	sourceManager, err := source.NewManager(sourceRepo, cfg.LocalDir)
+	sourceHandler, err := source.NewHandler(sourceRepo, cfg.LocalDir)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	sourceHandler := source.NewHandler(sourceManager)
 	libraryHandler := library.NewHandler(libraryRepo)
 	historyHandler := history.NewHandler(historyRepo)
 	updateHandler := update.NewHandler(updateRepo)

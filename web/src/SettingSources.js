@@ -9,8 +9,11 @@ import {
     ListItemText,
     ListItemSecondaryAction,
     Button,
-    Avatar
+    Avatar,
+    IconButton
 } from '@material-ui/core';
+import Topbar from './common/Topbar';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -22,13 +25,7 @@ const useStyles = makeStyles((theme) => ({
         objectFit: 'cover'
     },
     title: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'black',
-        opacity: '60%',
-        color: '#ffffff',
+        flexGrow: 1,
     },
     avatar: {
         marginRight: '0.5rem',
@@ -84,17 +81,18 @@ function SettingSources() {
         return "Install"
     }
 
-    if (!sourceList) {
-        return <div></div>
-    }
-
     return (
         <React.Fragment>
-            <Typography variant="h6">
-                Sources
-            </Typography>
+             <Topbar>
+                <IconButton color='inherit' onClick={() => navigate(-1)}>
+                    <ArrowBackIosIcon />
+                </IconButton>
+                <Typography variant="h6" className={classes.title}>
+                    Sources
+                </Typography>
+            </Topbar>
             <List>
-                {sourceList.map((s, index) => (
+                {sourceList && sourceList.map((s, index) => (
                     <ListItem button key={index} onClick={() => navigate(`/settings/source/${s.Name}`)}>
                         <Avatar className={classes.avatar} src={s.Icon} alt={s.Name} />
                         <ListItemText

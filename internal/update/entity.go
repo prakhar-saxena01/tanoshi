@@ -11,4 +11,5 @@ type Update struct {
 	ChapterNumber string
 	ChapterTitle  string
 	UploadedAt    time.Time
+	IsRead        bool
 }

@@ -17,7 +17,7 @@ import Settings from './Settings';
 import SettingCategories from './SettingCategories';
 import SettingSources from './SettingSources';
 import SettingSource from './SettingSource';
-import ReaderSetting from './common/ReaderSetting';
+import SettingReader from './SettingReader';
 
 function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -56,7 +56,7 @@ function App() {
           <Reader path="chapter/:chapterId" />
           <Settings path="settings">
             <SettingCategories path="/" />
-            <ReaderSetting path="reader" />
+            <SettingReader path="reader" />
             <SettingSources path="source" />
             <SettingSource path="source/:sourceName" />
           </Settings>

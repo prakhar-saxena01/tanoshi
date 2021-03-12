@@ -52,7 +52,7 @@ func (s *Server) RegisterHandler() {
 	api.GET("/source", func(c echo.Context) error {
 		installed, _ := strconv.ParseBool(c.QueryParam("installed"))
 		if installed {
-			sourceList, err := s.sourceHandler.GetSourceList()
+			sourceList, err := s.sourceHandler.List()
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, ErrorMessage{err.Error()})
 			}
@@ -124,7 +124,7 @@ func (s *Server) RegisterHandler() {
 		page, _ := strconv.ParseInt(c.QueryParam("page"), 10, 64)
 
 		latestManga, err, _ := s.requestGroup.Do(fmt.Sprintf("source/%s/latest", name), func() (interface{}, error) {
-			latestManga, err := s.sourceHandler.GetSourceLatestUpdates(name, int(page))
+			latestManga, err := s.sourceHandler.GetLatestUpdates(name, int(page))
 			if err != nil {
 				return nil, err
 			}

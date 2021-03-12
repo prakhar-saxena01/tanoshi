@@ -1,4 +1,5 @@
 import React from 'react';
+import { navigate } from '@reach/router';
 import { useAlert } from './common/Alert';
 import {
     makeStyles,
@@ -12,8 +13,11 @@ import {
     TextField,
     FormControlLabel,
     FormControl,
-    Checkbox
+    Checkbox,
+    IconButton
 } from '@material-ui/core';
+import Topbar from './common/Topbar';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 
 const useStyles = makeStyles((theme) => ({
     avatar: {
@@ -25,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
     textField: {
         width: '100%',
         marginBottom: '0.5rem'
+    },
+    title: {
+        flexGrow: 1,
     }
 }));
 
@@ -127,6 +134,14 @@ function SettingSource(props) {
 
     return (
         <React.Fragment>
+            <Topbar>
+                <IconButton color='inherit' onClick={() => navigate(-1)}>
+                    <ArrowBackIosIcon />
+                </IconButton>
+                <Typography variant="h6" className={classes.title}>
+                    Settings
+                </Typography>
+            </Topbar>
             <Typography variant="h6">
                 Login
             </Typography>

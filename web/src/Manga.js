@@ -19,7 +19,7 @@ import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
-
+import DOMPurify from 'dompurify';
 
 const useStyles = makeStyles((theme) => ({
     image: {
@@ -139,7 +139,7 @@ function Manga(props) {
                             </Grid>
                         </Grid>
                         <Typography variant="h6">Description</Typography>
-                        <Typography gutterBottom variant="body1">{manga && manga.Description}</Typography>
+                        <div dangerouslySetInnerHTML={{__html: manga && DOMPurify.sanitize(manga.Description)}} />
                         {manga && manga.Genres.split(',').map((genre, index) => (
                             <Chip key={index} label={genre} variant="outlined" className={classes.genre} />
                         ))}

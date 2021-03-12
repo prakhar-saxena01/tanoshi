@@ -11,7 +11,8 @@ import {
     useMediaQuery,
     useTheme,
     BottomNavigation,
-    BottomNavigationAction
+    BottomNavigationAction,
+    Paper
 } from '@material-ui/core';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
 import ExploreIcon from '@material-ui/icons/Explore';
@@ -41,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
     },
     drawerContainer: {
         overflow: 'auto',
-    },
+    }
 }));
 
 
@@ -77,15 +78,15 @@ function BottomNavbar() {
     };
 
     return (
-        <React.Fragment>
-            <BottomNavigation className={clasess.root} value={value} onChange={handleChange}>
+        <Paper className={clasess.root} elevation={2}>
+            <BottomNavigation value={value} onChange={handleChange}>
                 <BottomNavigationAction label="Library" value="library" onClick={() => navigate("/")} icon={<BookmarkIcon />} />
                 <BottomNavigationAction label="Browse" value="browse" onClick={() => navigate("/browse")} icon={<ExploreIcon />} />
                 <BottomNavigationAction label="Update" value="update" onClick={() => navigate("/update")} icon={<NotificationsIcon />} />
                 <BottomNavigationAction label="History" value="history" onClick={() => navigate("/history")} icon={<HistoryIcon />} />
                 <BottomNavigationAction label="Settings" value="settings" onClick={() => navigate("/settings")} icon={<SettingsIcon />} />
             </BottomNavigation>
-        </React.Fragment>
+        </Paper>
     )
 }
 

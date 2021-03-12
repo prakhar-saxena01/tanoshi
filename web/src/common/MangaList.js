@@ -6,7 +6,7 @@ function MangaList(props) {
     const { mangaList } = props;
 
     return (
-        <Box width="100%" padding={1}>
+        <Box width="100%">
             <Grid container direction="row" justify="flex-start" alignItems="flex-start" spacing={1}>
                 {mangaList && mangaList.map((el, index) => (
                     <Grid key={index} item xs={4} sm={2} lg={1}>
