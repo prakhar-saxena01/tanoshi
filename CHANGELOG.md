@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.1]
+### Fixed
+- [tanoshi-desktop] page not loaded
+
+## [0.28.0]
+### Added
+- [tanoshi] MyAnimeList tracking
+- [tanoshi] AniList tracking
+
+### Changed
+- [tanoshi] tracker and notifier move to their own crates
+- [tanoshi] chapter update worker will revert to insert all chapter and replace on conflict, but still only notify new chapter
+- [tanoshi] docker image use bookworm-slim
+- [tanoshi] use rayon `.par_iter` when possible
+  
+### Fixed
+- [tanoshi] archive with folder cannot be read
+- [tanoshi] special character in filename return error
+
+## [0.27.1]
+### Added
+- [tanoshi] add link to chapter on chapter update notification if `BASE_URL` is set
+  
+### Changed
+- [tanoshi] clean download file name is now done regardless of OS
+- [tanoshi-web] increas preload by 1 on continous reader
+  
+### Fixed
+- [tanoshi-web] filter input checkbox state not changed
+
 ## [0.27.0]
 ### Changed
 - [tanoshi] extension is back using dynamic library instead of webassembly or javascript
@@ -386,6 +416,10 @@ Nothing changes, this release to build for multiarch docker image
 
 - fix panic when using local source
 
+[Unreleased]: https://github.com/faldez/tanoshi/compare/v0.28.1...HEAD
+[0.28.1]: https://github.com/faldez/tanoshi/compare/v0.28.0...v0.28.1
+[0.28.0]: https://github.com/faldez/tanoshi/compare/v0.27.1...v0.28.0
+[0.27.1]: https://github.com/faldez/tanoshi/compare/v0.27.0...v0.27.1
 [0.27.0]: https://github.com/faldez/tanoshi/compare/v0.26.1...v0.27.0
 [0.26.1]: https://github.com/faldez/tanoshi/compare/v0.26.0...v0.26.1
 [0.26.0]: https://github.com/faldez/tanoshi/compare/v0.25.22...v0.26.0

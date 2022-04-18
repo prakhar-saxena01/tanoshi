@@ -1,140 +1,23 @@
-use std::{collections::HashMap, sync::Arc};
-
 use super::{Chapter, Source};
-use crate::{config::GLOBAL_CONFIG, db::MangaDatabase, user::Claims, utils};
-use async_graphql::{
-    dataloader::{DataLoader, Loader},
-    Context, Object, Result,
+use crate::{
+    config::GLOBAL_CONFIG,
+    db::MangaDatabase,
+    loader::{
+        DatabaseLoader, UserFavoriteId, UserFavoritePath, UserLastReadId, UserTrackerMangaId,
+        UserUnreadChaptersId,
+    },
+    user::Claims,
+    utils,
 };
+use async_graphql::{dataloader::DataLoader, Context, Object, Result, SimpleObject};
 use chrono::NaiveDateTime;
+use rayon::prelude::*;
 use tanoshi_vm::extension::SourceBus;
 
-pub type UserFavoriteId = (i64, i64);
-
-pub struct FavoriteLoader {
-    pub mangadb: MangaDatabase,
-}
-
-#[async_trait::async_trait]
-impl Loader<UserFavoriteId> for FavoriteLoader {
-    type Value = bool;
-
-    type Error = Arc<anyhow::Error>;
-
-    async fn load(
-        &self,
-        keys: &[UserFavoriteId],
-    ) -> Result<HashMap<UserFavoriteId, Self::Value>, Self::Error> {
-        let user_id = keys
-            .iter()
-            .next()
-            .map(|key| key.0)
-            .ok_or_else(|| anyhow::anyhow!("no user id"))?;
-        let manga_ids: Vec<i64> = keys.iter().map(|key| key.1).collect();
-        let res = self
-            .mangadb
-            .is_user_library_by_manga_ids(user_id, &manga_ids)
-            .await?
-            .into_iter()
-            .map(|(manga_id, is_library)| ((user_id, manga_id), is_library))
-            .collect();
-        Ok(res)
-    }
-}
-
-pub type UserFavoritePath = (i64, String);
-
-#[async_trait::async_trait]
-impl Loader<UserFavoritePath> for FavoriteLoader {
-    type Value = bool;
-
-    type Error = Arc<anyhow::Error>;
-
-    async fn load(
-        &self,
-        keys: &[UserFavoritePath],
-    ) -> Result<HashMap<UserFavoritePath, Self::Value>, Self::Error> {
-        let user_id = keys
-            .iter()
-            .next()
-            .map(|key| key.0)
-            .ok_or_else(|| anyhow::anyhow!("no user id"))?;
-        let manga_paths: Vec<String> = keys.iter().map(|key| key.1.clone()).collect();
-        let res = self
-            .mangadb
-            .is_user_library_by_manga_paths(user_id, &manga_paths)
-            .await?
-            .into_iter()
-            .map(|(manga_path, is_library)| ((user_id, manga_path), is_library))
-            .collect();
-        Ok(res)
-    }
-}
-
-pub type UserLastReadId = (i64, i64);
-
-pub struct UserLastReadLoader {
-    pub mangadb: MangaDatabase,
-}
-
-#[async_trait::async_trait]
-impl Loader<UserLastReadId> for UserLastReadLoader {
-    type Value = NaiveDateTime;
-
-    type Error = Arc<anyhow::Error>;
-
-    async fn load(
-        &self,
-        keys: &[UserLastReadId],
-    ) -> Result<HashMap<UserLastReadId, Self::Value>, Self::Error> {
-        let user_id = keys
-            .iter()
-            .next()
-            .map(|key| key.0)
-            .ok_or_else(|| anyhow::anyhow!("no user id"))?;
-        let manga_ids: Vec<i64> = keys.iter().map(|key| key.1).collect();
-        let res = self
-            .mangadb
-            .get_last_read_at_by_user_id_and_manga_ids(user_id, &manga_ids)
-            .await?
-            .into_iter()
-            .map(|(manga_id, read_at)| ((user_id, manga_id), read_at))
-            .collect();
-        Ok(res)
-    }
-}
-
-pub type UserUnreadChaptersId = (i64, i64);
-
-pub struct UserUnreadChaptersLoader {
-    pub mangadb: MangaDatabase,
-}
-
-#[async_trait::async_trait]
-impl Loader<UserUnreadChaptersId> for UserUnreadChaptersLoader {
-    type Value = i64;
-
-    type Error = Arc<anyhow::Error>;
-
-    async fn load(
-        &self,
-        keys: &[UserUnreadChaptersId],
-    ) -> Result<HashMap<UserUnreadChaptersId, Self::Value>, Self::Error> {
-        let user_id = keys
-            .iter()
-            .next()
-            .map(|key| key.0)
-            .ok_or_else(|| anyhow::anyhow!("no user id"))?;
-        let manga_ids: Vec<i64> = keys.iter().map(|key| key.1).collect();
-        let res = self
-            .mangadb
-            .get_user_library_unread_chapters(user_id, &manga_ids)
-            .await?
-            .into_iter()
-            .map(|(manga_id, count)| ((user_id, manga_id), count))
-            .collect();
-        Ok(res)
-    }
+#[derive(Debug, SimpleObject)]
+pub struct Tracker {
+    pub tracker: String,
+    pub tracker_manga_id: Option<String>,
 }
 
 /// A type represent manga details, normalized across source
@@ -150,6 +33,23 @@ pub struct Manga {
     pub path: String,
     pub cover_url: String,
     pub date_added: chrono::NaiveDateTime,
+}
+
+impl Default for Manga {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            source_id: Default::default(),
+            title: Default::default(),
+            author: Default::default(),
+            genre: Default::default(),
+            status: Default::default(),
+            description: Default::default(),
+            path: Default::default(),
+            cover_url: Default::default(),
+            date_added: NaiveDateTime::from_timestamp(0, 0),
+        }
+    }
 }
 
 impl From<tanoshi_lib::models::MangaInfo> for Manga {
@@ -265,11 +165,13 @@ impl Manga {
             .data::<Claims>()
             .map_err(|_| "token not exists, please login")?;
 
-        let loader = ctx.data::<DataLoader<FavoriteLoader>>()?;
+        let loader = ctx.data::<DataLoader<DatabaseLoader>>()?;
         let is_favorite: Option<bool> = if self.id == 0 {
-            loader.load_one((user.sub, self.path.clone())).await?
+            loader
+                .load_one(UserFavoritePath(user.sub, self.path.clone()))
+                .await?
         } else {
-            loader.load_one((user.sub, self.id)).await?
+            loader.load_one(UserFavoriteId(user.sub, self.id)).await?
         };
 
         Ok(is_favorite.unwrap_or(false))
@@ -283,16 +185,19 @@ impl Manga {
         let user = ctx
             .data::<Claims>()
             .map_err(|_| "token not exists, please login")?;
-        let loader = ctx.data::<DataLoader<UserUnreadChaptersLoader>>()?;
-        Ok(loader.load_one((user.sub, self.id)).await?.unwrap_or(0))
+        let loader = ctx.data::<DataLoader<DatabaseLoader>>()?;
+        Ok(loader
+            .load_one(UserUnreadChaptersId(user.sub, self.id))
+            .await?
+            .unwrap_or(0))
     }
 
     async fn last_read_at(&self, ctx: &Context<'_>) -> Result<Option<NaiveDateTime>> {
         let user = ctx
             .data::<Claims>()
             .map_err(|_| "token not exists, please login")?;
-        let loader = ctx.data::<DataLoader<UserLastReadLoader>>()?;
-        Ok(loader.load_one((user.sub, self.id)).await?)
+        let loader = ctx.data::<DataLoader<DatabaseLoader>>()?;
+        Ok(loader.load_one(UserLastReadId(user.sub, self.id)).await?)
     }
 
     async fn source(&self, ctx: &Context<'_>) -> Result<Source> {
@@ -309,7 +214,7 @@ impl Manga {
 
         if !refresh {
             if let Ok(chapters) = db.get_chapters_by_manga_id(self.id).await {
-                return Ok(chapters.into_iter().map(|c| c.into()).collect());
+                return Ok(chapters.into_par_iter().map(|c| c.into()).collect());
             }
         }
 
@@ -317,7 +222,7 @@ impl Manga {
             .data::<SourceBus>()?
             .get_chapters(self.source_id, self.path.clone())
             .await?
-            .into_iter()
+            .into_par_iter()
             .map(|c| {
                 let mut c: crate::db::model::Chapter = c.into();
                 c.manga_id = self.id;
@@ -335,7 +240,7 @@ impl Manga {
             .get_chapters_by_manga_id(self.id)
             .await
             .unwrap_or_default()
-            .into_iter()
+            .into_par_iter()
             .map(|c| c.into())
             .collect::<Vec<Chapter>>();
 
@@ -373,5 +278,24 @@ impl Manga {
             .get_next_chapter_by_manga_id(user.sub, id)
             .await?
             .map(|c| c.into()))
+    }
+
+    async fn trackers(&self, ctx: &Context<'_>) -> Result<Vec<Tracker>> {
+        let user = ctx
+            .data::<Claims>()
+            .map_err(|_| "token not exists, please login")?;
+        let loader = ctx.data::<DataLoader<DatabaseLoader>>()?;
+        let data = loader
+            .load_one(UserTrackerMangaId(user.sub, self.id))
+            .await?
+            .unwrap_or_default()
+            .into_par_iter()
+            .map(|(tracker, tracker_manga_id)| Tracker {
+                tracker,
+                tracker_manga_id,
+            })
+            .collect();
+
+        Ok(data)
     }
 }

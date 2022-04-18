@@ -87,6 +87,7 @@ type Manga {
     id: Int!
   ): Chapter!
   nextChapter: Chapter
+  trackers: [Tracker!]!
 }
 
 type MutationRoot {
@@ -152,6 +153,7 @@ type MutationRoot {
     newPassword: String!
   ): Int!
   updateProfile(input: ProfileInput!): Int!
+  trackerLogout(tracker: String!): Int!
   installSource(sourceId: Int!): Int!
   uninstallSource(sourceId: Int!): Int!
   updateSource(sourceId: Int!): Int!
@@ -162,6 +164,13 @@ type MutationRoot {
   removeChaptersFromQueue(ids: [Int!]!): Int!
   removeDownloadedChapters(ids: [Int!]!): Int!
   updateChapterPriority(id: Int!, priority: Int!): Boolean!
+  trackManga(tracker: String!, mangaId: Int!, trackerMangaId: String!): Int!
+  untrackManga(tracker: String!, mangaId: Int!): Int!
+  updateTrackerStatus(
+    tracker: String!
+    trackerMangaId: String!
+    status: TrackerStatusInput!
+  ): Boolean!
 }
 
 # ISO 8601 combined date and time without timezone.
@@ -288,6 +297,17 @@ type QueryRoot {
     first: Int
     last: Int
   ): ChapterConnection!
+  myanimelistLoginStart: Session!
+  myanimelistLoginEnd(
+    code: String!
+    state: String!
+    csrfState: String!
+    pkceCodeVerifier: String!
+  ): String!
+  anilistLoginStart: Session!
+  anilistLoginEnd(code: String!): String!
+  searchTrackerManga(tracker: String!, title: String!): [TrackerManga!]!
+  mangaTrackerStatus(mangaId: Int!): [TrackerStatus!]!
 }
 
 type ReadProgress {
@@ -349,6 +369,12 @@ type RecentUpdateEdge {
   cursor: String!
 }
 
+type Session {
+  authorizeUrl: String!
+  csrfState: String!
+  pkceCodeVerifier: String
+}
+
 type Source {
   id: Int!
   name: String!
@@ -365,10 +391,45 @@ type Status {
   version: String!
 }
 
+type Tracker {
+  tracker: String!
+  trackerMangaId: String
+}
+
+type TrackerManga {
+  tracker: String!
+  trackerMangaId: String!
+  title: String!
+  synopsis: String!
+  coverUrl: String!
+  status: String!
+}
+
+type TrackerStatus {
+  tracker: String!
+  trackerMangaId: String
+  trackerMangaTitle: String
+  status: String
+  score: Int
+  numChaptersRead: Int
+  startDate: NaiveDateTime
+  finishDate: NaiveDateTime
+}
+
+input TrackerStatusInput {
+  status: String
+  score: Int
+  numChaptersRead: Int
+  startDate: NaiveDateTime
+  finishDate: NaiveDateTime
+}
+
 type User {
   id: Int!
   username: String!
   isAdmin: Boolean!
   telegramChatId: Int
   pushoverUserKey: String
+  myanimelistStatus: Boolean!
+  anilistStatus: Boolean!
 }

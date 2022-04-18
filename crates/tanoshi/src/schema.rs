@@ -1,18 +1,17 @@
 use crate::{
-    catalogue::{
-        chapter::{MangaLoader, NextChapterLoader, PrevChapterLoader, ReadProgressLoader},
-        manga::{FavoriteLoader, UserLastReadLoader, UserUnreadChaptersLoader},
-        CatalogueRoot, SourceMutationRoot, SourceRoot,
-    },
+    catalogue::{CatalogueRoot, SourceMutationRoot, SourceRoot},
     db::{MangaDatabase, UserDatabase},
     downloads::{DownloadMutationRoot, DownloadRoot},
     library::{CategoryMutationRoot, CategoryRoot, LibraryMutationRoot, LibraryRoot},
+    loader::DatabaseLoader,
     notification::NotificationRoot,
     notifier::Notifier,
     status::StatusRoot,
+    tracking::{TrackingMutationRoot, TrackingRoot},
     user::{UserMutationRoot, UserRoot},
     worker::downloads::DownloadSender,
 };
+use tanoshi_tracker::{AniList, MyAnimeList};
 use tanoshi_vm::extension::SourceBus;
 
 use async_graphql::{dataloader::DataLoader, EmptySubscription, MergedObject, Schema};
@@ -29,6 +28,7 @@ pub struct QueryRoot(
     StatusRoot,
     NotificationRoot,
     DownloadRoot,
+    TrackingRoot,
 );
 
 #[derive(MergedObject, Default)]
@@ -38,6 +38,7 @@ pub struct MutationRoot(
     UserMutationRoot,
     SourceMutationRoot,
     DownloadMutationRoot,
+    TrackingMutationRoot,
 );
 
 pub fn build(
@@ -46,51 +47,17 @@ pub fn build(
     ext_manager: SourceBus,
     download_tx: DownloadSender,
     notifier: Notifier,
+    mal_client: Option<MyAnimeList>,
+    al_client: Option<AniList>,
 ) -> TanoshiSchema {
-    let schemabuilder = Schema::build(
+    let mut builder = Schema::build(
         QueryRoot::default(),
         MutationRoot::default(),
         EmptySubscription::default(),
     )
     // .extension(ApolloTracing)
     .data(DataLoader::new(
-        FavoriteLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        UserLastReadLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        UserUnreadChaptersLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        ReadProgressLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        PrevChapterLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        NextChapterLoader {
-            mangadb: mangadb.clone(),
-        },
-        tokio::spawn,
-    ))
-    .data(DataLoader::new(
-        MangaLoader {
+        DatabaseLoader {
             mangadb: mangadb.clone(),
         },
         tokio::spawn,
@@ -101,5 +68,13 @@ pub fn build(
     .data(notifier)
     .data(download_tx);
 
-    schemabuilder.finish()
+    if let Some(mal_client) = mal_client {
+        builder = builder.data(mal_client);
+    }
+
+    if let Some(al_client) = al_client {
+        builder = builder.data(al_client);
+    }
+
+    builder.finish()
 }

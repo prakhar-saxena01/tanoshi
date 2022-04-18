@@ -1,22 +1,12 @@
-use teloxide::{
-    adaptors::{AutoSend, DefaultParseMode},
-    prelude::Requester,
-    Bot,
-};
-
-use self::pushover::Pushover;
-use crate::db::UserDatabase;
-
-pub mod pushover;
-pub mod telegram;
-
-pub type Telegram = DefaultParseMode<AutoSend<Bot>>;
+use crate::{config::GLOBAL_CONFIG, db::UserDatabase};
+use tanoshi_notifier::{telegram::Telegram, pushover::Pushover};
 
 pub struct Builder {
     userdb: UserDatabase,
     pushover: Option<Pushover>,
     telegram: Option<Telegram>,
 }
+
 impl Builder {
     pub fn new(userdb: UserDatabase) -> Self {
         Self {
@@ -91,6 +81,47 @@ impl Notifier {
             let _ = self.send_all_to_user(user.id, title.clone(), body).await;
         }
 
+        Ok(())
+    }
+
+    pub async fn send_chapter_notification(
+        &self,
+        user_id: i64,
+        manga_title: &str,
+        chapter_title: &str,
+        chapter_id: i64,
+    ) -> Result<(), anyhow::Error> {
+        let user = self.userdb.get_user_by_id(user_id).await?;
+        if let Some((user_key, pushover)) = user.pushover_user_key.zip(self.pushover.as_ref()) {
+            if let Some(base_url) = GLOBAL_CONFIG.get().and_then(|cfg| cfg.base_url.clone()) {
+                pushover
+                    .send_notification_with_title_and_url(
+                        &user_key,
+                        manga_title,
+                        chapter_title,
+                        &format!("{base_url}/chapter/{chapter_id}"),
+                        "Open",
+                    )
+                    .await?;
+            } else {
+                pushover
+                    .send_notification_with_title(&user_key, manga_title, chapter_title)
+                    .await?;
+            }
+        }
+
+        if let Some(chat_id) = user.telegram_chat_id {
+            let mut message = format!("<b>{manga_title}</b>\n");
+            if let Some(base_url) = GLOBAL_CONFIG.get().and_then(|cfg| cfg.base_url.clone()) {
+                message = format!(
+                    "{message}<a href=\"{base_url}/chapter/{chapter_id}\">{chapter_title}</a>"
+                );
+            } else {
+                message = format!("{message}{chapter_title}");
+            }
+
+            let _ = self.send_message_to_telegram(chat_id, &message).await;
+        }
         Ok(())
     }
 

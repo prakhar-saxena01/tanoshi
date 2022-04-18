@@ -1,9 +1,9 @@
 use crate::{config::GLOBAL_CONFIG, db::UserDatabase, guard::AdminGuard};
-use async_graphql::{Context, InputObject, Object, Result, SimpleObject};
-use rand::RngCore;
-
+use async_graphql::{Context, InputObject, Object, Result};
 use jsonwebtoken::{EncodingKey, Header};
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
+use tanoshi_tracker::{anilist, myanimelist};
 
 /// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,11 +14,10 @@ pub struct Claims {
     pub exp: usize,
 }
 
-#[derive(Debug, SimpleObject)]
+#[derive(Debug)]
 pub struct User {
     pub id: i64,
     pub username: String,
-    #[graphql(skip)]
     pub password: String,
     pub is_admin: bool,
     telegram_chat_id: Option<i64>,
@@ -50,6 +49,51 @@ impl From<User> for crate::db::model::User {
     }
 }
 
+#[Object]
+impl User {
+    async fn id(&self) -> i64 {
+        self.id
+    }
+
+    async fn username(&self) -> String {
+        self.username.clone()
+    }
+
+    async fn is_admin(&self) -> bool {
+        self.is_admin
+    }
+
+    async fn telegram_chat_id(&self) -> Option<i64> {
+        self.telegram_chat_id
+    }
+
+    async fn pushover_user_key(&self) -> Option<String> {
+        self.pushover_user_key.clone()
+    }
+
+    async fn myanimelist_status(&self, ctx: &Context<'_>) -> Result<bool> {
+        let user = ctx
+            .data::<Claims>()
+            .map_err(|_| "token not exists, please login")?;
+        Ok(ctx
+            .data::<UserDatabase>()?
+            .get_user_tracker_token(myanimelist::NAME, user.sub)
+            .await
+            .is_ok())
+    }
+
+    async fn anilist_status(&self, ctx: &Context<'_>) -> Result<bool> {
+        let user = ctx
+            .data::<Claims>()
+            .map_err(|_| "token not exists, please login")?;
+        Ok(ctx
+            .data::<UserDatabase>()?
+            .get_user_tracker_token(anilist::NAME, user.sub)
+            .await
+            .is_ok())
+    }
+}
+
 #[derive(InputObject)]
 struct ProfileInput {
     pub telegram_chat_id: Option<i64>,
@@ -77,13 +121,14 @@ impl UserRoot {
         }
 
         let secret = &GLOBAL_CONFIG.get().ok_or("secret not set")?.secret;
+        let current_time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?;
         let token = jsonwebtoken::encode(
             &Header::default(),
             &Claims {
                 sub: user.id,
                 username: user.username,
                 is_admin: user.is_admin,
-                exp: 10000000000,
+                exp: (current_time + std::time::Duration::from_secs(2678400)).as_secs() as usize, // 31 days
             },
             &EncodingKey::from_secret(secret.as_bytes()),
         )?;
@@ -193,7 +238,6 @@ impl UserMutationRoot {
     }
 
     async fn update_profile(&self, ctx: &Context<'_>, input: ProfileInput) -> Result<u64> {
-        debug!("update_profile");
         let claims = ctx
             .data::<Claims>()
             .map_err(|_| "token not exists, please login")?;
@@ -210,5 +254,16 @@ impl UserMutationRoot {
         debug!("update_profile: {} rows affected", row);
 
         Ok(row)
+    }
+
+    async fn tracker_logout(&self, ctx: &Context<'_>, tracker: String) -> Result<u64> {
+        let claims = ctx
+            .data::<Claims>()
+            .map_err(|_| "token not exists, please login")?;
+
+        Ok(ctx
+            .data::<UserDatabase>()?
+            .delete_user_tracker_login(&tracker, claims.sub)
+            .await?)
     }
 }

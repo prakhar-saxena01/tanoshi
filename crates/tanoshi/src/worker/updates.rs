@@ -1,5 +1,7 @@
 use std::{collections::HashMap, str::FromStr};
 
+use chrono::NaiveDateTime;
+use rayon::prelude::*;
 use serde::Deserialize;
 
 use tanoshi_lib::prelude::Version;
@@ -75,26 +77,24 @@ impl UpdatesWorker {
                 .mangadb
                 .get_last_uploaded_chapters_by_manga_id(item.manga.id)
                 .await
-                .map(|ch| ch.uploaded);
+                .map(|ch| ch.uploaded)
+                .unwrap_or_else(|| NaiveDateTime::from_timestamp(0, 0));
 
             debug!("Checking updates: {}", item.manga.title);
 
-            let chapters = match self
+            let chapters: Vec<Chapter> = match self
                 .extensions
                 .get_chapters(item.manga.source_id, item.manga.path.clone())
                 .await
             {
-                Ok(chapters) => {
-                    let chapters: Vec<Chapter> = chapters
-                        .into_iter()
-                        .map(|ch| {
-                            let mut c: Chapter = ch.into();
-                            c.manga_id = item.manga.id;
-                            c
-                        })
-                        .collect();
-                    chapters
-                }
+                Ok(chapters) => chapters
+                    .into_par_iter()
+                    .map(|ch| {
+                        let mut c: Chapter = ch.into();
+                        c.manga_id = item.manga.id;
+                        c
+                    })
+                    .collect(),
                 Err(e) => {
                     error!("error fetch new chapters, reason: {}", e);
                     continue;
@@ -102,17 +102,20 @@ impl UpdatesWorker {
             };
 
             if let Err(e) = self.mangadb.insert_chapters(&chapters).await {
-                error!("error inserting new chapters, reason: {}", e);
+                error!("error insert chapters, reason: {}", e);
                 continue;
             }
 
-            let chapters = if let Some(last_uploaded_chapter) = last_uploaded_chapter {
-                chapters
-                    .into_iter()
-                    .filter(|ch| ch.uploaded > last_uploaded_chapter)
-                    .collect()
-            } else {
-                chapters
+            let chapters = match self
+                .mangadb
+                .get_chapters_by_manga_id_after(item.manga.id, last_uploaded_chapter)
+                .await
+            {
+                Ok(chapters) => chapters,
+                Err(e) => {
+                    error!("error insert chapters, reason: {}", e);
+                    continue;
+                }
             };
 
             info!(
@@ -127,13 +130,18 @@ impl UpdatesWorker {
                     .notifier
                     .send_desktop_notification(Some(item.manga.title.clone()), &chapter.title)
                 {
-                    error!("failed to send notification, reason {}", e);
+                    error!("failed to send desktop notification, reason {}", e);
                 }
 
                 for user_id in item.user_ids.iter() {
                     if let Err(e) = self
                         .notifier
-                        .send_all_to_user(*user_id, Some(item.manga.title.clone()), &chapter.title)
+                        .send_chapter_notification(
+                            *user_id,
+                            &item.manga.title,
+                            &chapter.title,
+                            chapter.id,
+                        )
                         .await
                     {
                         error!("failed to send notification, reason {}", e);
@@ -161,7 +169,7 @@ impl UpdatesWorker {
         let url = GLOBAL_CONFIG
             .get()
             .map(|cfg| format!("{}/index.json", cfg.extension_repository))
-            .ok_or(anyhow!("no config set"))?;
+            .ok_or_else(|| anyhow!("no config set"))?;
         let available_sources_map = self
             .client
             .get(&url)
@@ -169,7 +177,7 @@ impl UpdatesWorker {
             .await?
             .json::<Vec<Source>>()
             .await?
-            .into_iter()
+            .into_par_iter()
             .map(|source| (source.id, source))
             .collect::<HashMap<i64, Source>>();
 

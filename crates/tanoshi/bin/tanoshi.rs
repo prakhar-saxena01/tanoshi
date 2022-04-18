@@ -2,34 +2,17 @@
 extern crate log;
 extern crate argon2;
 
-#[cfg(feature = "embed")]
-mod assets;
-mod catalogue;
-mod config;
-mod db;
-mod downloads;
-mod guard;
-mod library;
-mod local;
-mod notification;
-mod notifier;
-mod proxy;
-mod schema;
-mod server;
-mod status;
-mod user;
-mod utils;
-mod worker;
-
-use crate::{
-    config::{Config, GLOBAL_CONFIG},
-    notifier::pushover::Pushover,
-};
 use clap::Parser;
 use futures::future::OptionFuture;
+use tanoshi::{
+    config::{self, Config, GLOBAL_CONFIG},
+    db, local, notifier,
+    proxy::Proxy,
+    schema, server, worker,
+};
+use tanoshi_notifier::{pushover::Pushover, telegram::Telegram};
+use tanoshi_tracker::{AniList, MyAnimeList};
 use tanoshi_vm::{extension::SourceBus, prelude::Source};
-
-use teloxide::prelude::RequesterExt;
 
 #[derive(Parser)]
 struct Opts {
@@ -95,10 +78,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let mut telegram_bot_fut: OptionFuture<_> = None.into();
     if let Some(telegram_config) = config.telegram.clone() {
-        let bot = teloxide::Bot::new(telegram_config.token)
-            .auto_send()
-            .parse_mode(teloxide::types::ParseMode::Html);
-        telegram_bot_fut = Some(notifier::telegram::run(telegram_config.name, bot.clone())).into();
+        let bot = Telegram::new(telegram_config.token);
+        telegram_bot_fut = Some(tanoshi_notifier::telegram::run(bot.clone())).into();
         notifier_builder = notifier_builder.telegram(bot);
     }
 
@@ -124,9 +105,35 @@ async fn main() -> Result<(), anyhow::Error> {
         notifier.clone(),
     );
 
-    let schema = schema::build(userdb, mangadb, extension_manager, download_tx, notifier);
+    let mal_client = config
+        .base_url
+        .clone()
+        .zip(config.myanimelist.clone())
+        .and_then(|(base_url, mal_cfg)| {
+            MyAnimeList::new(&base_url, mal_cfg.client_id.clone(), mal_cfg.client_secret).ok()
+        });
 
-    let app = server::init_app(config, schema);
+    let al_client = config
+        .base_url
+        .clone()
+        .zip(config.anilist.clone())
+        .and_then(|(base_url, al_cfg)| {
+            AniList::new(&base_url, al_cfg.client_id.clone(), al_cfg.client_secret).ok()
+        });
+
+    let schema = schema::build(
+        userdb.clone(),
+        mangadb,
+        extension_manager,
+        download_tx,
+        notifier,
+        mal_client,
+        al_client,
+    );
+
+    let proxy = Proxy::new(config.secret.clone());
+
+    let app = server::init_app(config.enable_playground, schema, proxy);
     let server_fut = server::serve("0.0.0.0", config.port, app);
 
     tokio::select! {

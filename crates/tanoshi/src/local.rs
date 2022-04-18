@@ -1,6 +1,5 @@
 use std::{
     collections::HashMap,
-    ffi::OsStr,
     fs::{DirEntry, ReadDir},
     path::{Path, PathBuf},
     time::UNIX_EPOCH,
@@ -9,6 +8,7 @@ use std::{
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use fancy_regex::Regex;
+use mime_guess::mime;
 use serde::{Deserialize, Serialize};
 use tanoshi_lib::prelude::{ChapterInfo, Extension, Input, Lang, MangaInfo, SourceInfo};
 
@@ -46,7 +46,9 @@ fn default_cover_url() -> String {
 
 fn filter_supported_files_and_folders(entry: Result<DirEntry, std::io::Error>) -> Option<DirEntry> {
     let entry = entry.ok()?;
-    if entry.path().is_dir() || SUPPORTED_FILES.contains(entry.path().extension()?.to_str()?) {
+    if entry.path().is_dir()
+        || SUPPORTED_FILES.contains(&entry.path().extension()?.to_string_lossy().to_string())
+    {
         Some(entry)
     } else {
         None
@@ -63,11 +65,24 @@ fn find_cover_from_archive(path: &Path) -> String {
         }
     };
 
-    compress_tools::list_archive_files(source)
-        .ok()
-        .and_then(|files| files.first().cloned())
-        .map(|page| path.join(page).display().to_string())
-        .unwrap_or_else(default_cover_url)
+    let mut cover_url = default_cover_url();
+    if let Ok(files) = compress_tools::list_archive_files(source) {
+        for file in files {
+            let file = PathBuf::from(&file);
+            let res = mime_guess::from_path(&file);
+            debug!("{} {:?}", file.display(), res.first());
+            if res
+                .first()
+                .map(|m| m.type_() == mime::IMAGE)
+                .unwrap_or(false)
+            {
+                cover_url = path.join(file).display().to_string();
+                break;
+            }
+        }
+    }
+
+    cover_url
 }
 
 // find first image from a directory
@@ -167,6 +182,12 @@ pub fn get_pages_from_archive(path: &Path) -> Result<Vec<String>, anyhow::Error>
         Ok(files) => {
             let pages = files
                 .into_iter()
+                .filter(|p| {
+                    mime_guess::from_path(&p)
+                        .first()
+                        .map(|m| m.type_() == mime::IMAGE)
+                        .unwrap_or(false)
+                })
                 .map(|p| path.join(p).display().to_string())
                 .collect();
             Ok(pages)
@@ -205,12 +226,7 @@ fn map_entry_to_chapter(source_id: i64, path: &Path) -> Option<ChapterInfo> {
             return None;
         }
     };
-    let file_name = match path.file_stem().and_then(|file_stem| file_stem.to_str()) {
-        Some(file_stem) => file_stem.to_string(),
-        None => {
-            return None;
-        }
-    };
+    let file_name = path.file_stem()?.to_string_lossy().to_string();
     let number = match number_re.find(&file_name).ok().and_then(|m| m) {
         Some(mat) => mat.as_str().parse().unwrap_or(0_f64),
         None => 10000_f64,
@@ -291,9 +307,9 @@ impl Extension for Local {
             data = Box::new(data.filter(move |entry| {
                 entry
                     .file_name()
-                    .to_str()
-                    .map(|a| a.to_lowercase().contains(&keyword))
-                    .unwrap_or_else(|| false)
+                    .to_string_lossy()
+                    .to_lowercase()
+                    .contains(&keyword)
             }));
         }
 
@@ -305,14 +321,13 @@ impl Extension for Local {
                 title: entry
                     .path()
                     .file_stem()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or_default()
-                    .to_string(),
+                    .map(|s| s.to_string_lossy().to_string())
+                    .unwrap_or_else(|| "".to_string()),
                 author: vec![],
                 genre: vec![],
                 status: None,
                 description: None,
-                path: entry.path().to_str().unwrap_or("").to_string(),
+                path: entry.path().to_string_lossy().to_string(),
                 cover_url: find_cover_url(&entry.path()),
             })
             .collect::<Vec<_>>();
@@ -326,9 +341,8 @@ impl Extension for Local {
 
         let title = path
             .file_stem()
-            .and_then(OsStr::to_str)
-            .unwrap_or("")
-            .to_string();
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| "".to_string());
         let cover_url = find_cover_url(&path);
 
         let mut manga = MangaInfo {

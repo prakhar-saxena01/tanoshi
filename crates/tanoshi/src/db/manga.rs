@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
-use super::model::{
-    Category, Chapter, DownloadQueue, DownloadQueueEntry, Manga, ReadProgress, UserMangaLibrary,
-};
+use super::model::*;
 use crate::library::{RecentChapter, RecentUpdate};
 use anyhow::{anyhow, Result};
 use chrono::NaiveDateTime;
-use sqlx::sqlite::{SqliteArguments, SqlitePool};
-use sqlx::{Arguments, Row};
+use sqlx::{
+    sqlite::{SqliteArguments, SqlitePool},
+    Arguments, Row,
+};
 use tokio_stream::StreamExt;
 
 #[derive(Debug, Clone)]
@@ -1185,7 +1185,38 @@ impl Db {
         })
     }
 
-    #[allow(dead_code)]
+    pub async fn get_chapters_by_manga_id_after(
+        &self,
+        manga_id: i64,
+        after: NaiveDateTime,
+    ) -> Result<Vec<Chapter>> {
+        let mut conn = self.pool.acquire().await?;
+        let stream = sqlx::query(
+            r#"
+            SELECT * FROM chapter WHERE manga_id = ? AND uploaded > ? ORDER BY uploaded ASC"#,
+        )
+        .bind(manga_id)
+        .bind(after)
+        .fetch_all(&mut conn)
+        .await?;
+
+        Ok(stream
+            .iter()
+            .map(|row| Chapter {
+                id: row.get(0),
+                source_id: row.get(1),
+                manga_id: row.get(2),
+                title: row.get(3),
+                path: row.get(4),
+                number: row.get(5),
+                scanlator: row.get(6),
+                uploaded: row.get(7),
+                date_added: row.get(8),
+                downloaded_path: row.get(9),
+            })
+            .collect())
+    }
+
     pub async fn insert_chapter(&self, chapter: &Chapter) -> Result<i64> {
         let mut conn = self.pool.acquire().await?;
         let row_id = sqlx::query(
@@ -1198,7 +1229,14 @@ impl Db {
                 scanlator,
                 uploaded,
                 date_added
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"#,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(source_id, path) DO UPDATE SET
+            manga_id=excluded.manga_id,
+            title=excluded.title,
+            number=excluded.number,
+            scanlator=excluded.scanlator,
+            uploaded=excluded.uploaded,
+            date_added=excluded.date_added"#,
         )
         .bind(chapter.source_id)
         .bind(chapter.manga_id)
@@ -1988,5 +2026,126 @@ impl Db {
             .await
             .map(|res| res.rows_affected())
             .map_err(|e| anyhow::anyhow!(e))
+    }
+
+    pub async fn insert_tracker_manga(
+        &self,
+        user_id: i64,
+        manga_id: i64,
+        tracker: &str,
+        tracker_manga_id: String,
+    ) -> Result<i64> {
+        let mut conn = self.pool.acquire().await?;
+        let row_id = sqlx::query(
+            r#"
+            INSERT INTO tracker_manga(
+                user_id,
+                manga_id,
+                tracker,
+                tracker_manga_id
+            ) VALUES (?, ?, ?, ?)"#,
+        )
+        .bind(user_id)
+        .bind(manga_id)
+        .bind(tracker)
+        .bind(tracker_manga_id)
+        .execute(&mut conn)
+        .await?
+        .last_insert_rowid();
+
+        Ok(row_id)
+    }
+
+    pub async fn delete_tracker_manga(
+        &self,
+        user_id: i64,
+        manga_id: i64,
+        tracker: &str,
+    ) -> Result<u64> {
+        let mut conn = self.pool.acquire().await?;
+        let rows = sqlx::query(
+            r#"
+            DELETE FROM tracker_manga
+            WHERE user_id = ? AND manga_id = ? AND tracker = ?
+            "#,
+        )
+        .bind(user_id)
+        .bind(manga_id)
+        .bind(tracker)
+        .execute(&mut conn)
+        .await?
+        .rows_affected();
+
+        Ok(rows)
+    }
+
+    pub async fn get_tracker_manga_ids(
+        &self,
+        user_id: i64,
+        manga_ids: &[i64],
+    ) -> Result<Vec<TrackedManga>> {
+        let mut conn = self.pool.acquire().await?;
+
+        let query_str = format!(
+            r#"
+            SELECT m.id as manga_id, tc.tracker, tm.tracker_manga_id FROM tracker_credential tc 
+            LEFT JOIN manga m ON m.id IN ({})
+            LEFT JOIN tracker_manga tm ON tc.tracker = tm.tracker AND tm.manga_id = m.id
+            WHERE tc.user_id = ?;
+            "#,
+            vec!["?"; manga_ids.len()].join(",")
+        );
+
+        let mut query = sqlx::query(&query_str);
+
+        for manga_id in manga_ids {
+            query = query.bind(manga_id);
+        }
+
+        let rows = query
+            .bind(user_id)
+            .fetch_all(&mut conn)
+            .await?
+            .iter()
+            .map(|row| TrackedManga {
+                manga_id: row.get(0),
+                tracker: row.get(1),
+                tracker_manga_id: row.get(2),
+            })
+            .collect();
+
+        Ok(rows)
+    }
+
+    pub async fn get_tracker_manga_id(
+        &self,
+        user_id: i64,
+        manga_id: i64,
+    ) -> Result<Vec<TrackedManga>> {
+        let mut conn = self.pool.acquire().await?;
+
+        let query = sqlx::query(
+            r#"
+        SELECT m.id as manga_id, tc.tracker, tm.tracker_manga_id FROM tracker_credential tc 
+        LEFT JOIN manga m ON m.id = ?
+        LEFT JOIN tracker_manga tm ON tc.tracker = tm.tracker AND tm.manga_id = m.id
+        WHERE tc.user_id = ?;
+        "#,
+        );
+
+        let rows = query
+            .bind(manga_id)
+            .bind(user_id)
+            .fetch_all(&mut conn)
+            .await?
+            .iter()
+            .map(|row| TrackedManga {
+                manga_id: row.get(0),
+                tracker: row.get(1),
+                tracker_manga_id: row.get(2),
+            })
+            .collect();
+
+        Ok(rows)
     }
 }

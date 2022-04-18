@@ -1,9 +1,4 @@
-use crate::{
-    config::{Config, GLOBAL_CONFIG},
-    proxy::Proxy,
-    schema::TanoshiSchema,
-    user::Claims,
-};
+use crate::{config::GLOBAL_CONFIG, proxy::Proxy, schema::TanoshiSchema, user::Claims};
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
@@ -12,16 +7,15 @@ use axum::{
     extract::{Extension, FromRequest, RequestParts, TypedHeader},
     response::{self, IntoResponse},
     routing::{get, post},
-    AddExtensionLayer, Router, Server,
+    Router, Server,
 };
 use headers::{authorization::Bearer, Authorization};
 use jsonwebtoken::{DecodingKey, Validation};
 use std::{
     net::{IpAddr, SocketAddr},
     str::FromStr,
-    sync::Arc,
 };
-use tower_http::cors::{any, CorsLayer};
+use tower_http::cors::{Any, CorsLayer};
 
 struct Token(String);
 
@@ -74,17 +68,19 @@ async fn health_check() -> impl IntoResponse {
     response::Html("OK")
 }
 
-pub fn init_app(config: &Config, schema: TanoshiSchema) -> Router<axum::body::Body> {
-    let proxy = Arc::new(Proxy::new(config.secret.clone()));
-
+pub fn init_app(
+    enable_playground: bool,
+    schema: TanoshiSchema,
+    proxy: Proxy,
+) -> Router<axum::body::Body> {
     let mut app = Router::new();
 
     app = app
         .route("/health", get(health_check))
         .route("/image/:url", get(Proxy::proxy))
-        .layer(AddExtensionLayer::new(proxy));
+        .layer(Extension(proxy));
 
-    if config.enable_playground {
+    if enable_playground {
         app = app
             .route("/graphql", get(graphql_playground).post(graphql_handler))
             .route("/graphql/", post(graphql_handler));
@@ -94,11 +90,11 @@ pub fn init_app(config: &Config, schema: TanoshiSchema) -> Router<axum::body::Bo
             .route("/graphql/", post(graphql_handler));
     }
 
-    app = app.layer(AddExtensionLayer::new(schema)).layer(
+    app = app.layer(Extension(schema)).layer(
         CorsLayer::new()
-            .allow_origin(any())
-            .allow_methods(any())
-            .allow_headers(any())
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any)
             .allow_credentials(true),
     );
 

@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - libloading
     paths:
       - .github/workflows/master.yml
       - Dockerfile
@@ -19,7 +18,7 @@ on:
 
 jobs:
   build-docker:
-    if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/libloading' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     environment: default
     steps:
@@ -30,11 +29,21 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+      - name: Create ARM64 Context
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.ARM64_NODE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ${{ secrets.ARM64_NODE_HOST }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          docker context create node-arm64 --docker "host=ssh://${{ secrets.ARM64_NODE_USERNAME }}@${{ secrets.ARM64_NODE_HOST }}"
+          docker buildx create --append --name ${{ steps.buildx.outputs.name }} --platform linux/arm64 node-arm64
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -87,7 +96,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: install
-          args: tauri-cli --version ^1.0.0-beta --locked
+          args: tauri-cli --version ^1.0.0-rc --locked
       - name: Install deps
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: sudo apt update && sudo apt upgrade -y && sudo apt install -y libssl-dev libarchive-dev build-essential cmake llvm clang libicu-dev nettle-dev libacl1-dev liblzma-dev libzstd-dev liblz4-dev libbz2-dev zlib1g-dev libxml2-dev lsb-release wget software-properties-common libwebkit2gtk-4.0-dev curl libgtk-3-dev libappindicator3-dev patchelf librsvg2-dev libpango1.0-dev

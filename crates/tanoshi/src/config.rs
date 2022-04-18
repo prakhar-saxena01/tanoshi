@@ -18,6 +18,18 @@ pub struct PushoverConfig {
     pub application_key: String,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MyAnimeListConfig {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct AniListConfig {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LocalFolder {
     pub name: String,
@@ -37,6 +49,8 @@ pub struct Config {
     path: PathBuf,
     #[serde(skip, default = "default_extension_repository")]
     pub extension_repository: String,
+    #[serde(default)]
+    pub base_url: Option<String>,
     #[serde(default = "default_port")]
     pub port: u16,
     #[serde(default = "default_database_path")]
@@ -57,6 +71,8 @@ pub struct Config {
     pub enable_playground: bool,
     pub telegram: Option<TelegramConfig>,
     pub pushover: Option<PushoverConfig>,
+    pub myanimelist: Option<MyAnimeListConfig>,
+    pub anilist: Option<AniListConfig>,
 }
 
 impl Default for Config {
@@ -64,6 +80,7 @@ impl Default for Config {
         Self {
             path: tanoshi_home().join("config.yml"),
             extension_repository: default_extension_repository(),
+            base_url: None,
             port: default_port(),
             database_path: default_database_path(),
             secret: default_secret(),
@@ -75,6 +92,8 @@ impl Default for Config {
             enable_playground: false,
             telegram: None,
             pushover: None,
+            myanimelist: None,
+            anilist: None,
         }
     }
 }

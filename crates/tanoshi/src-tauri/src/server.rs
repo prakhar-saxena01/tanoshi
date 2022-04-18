@@ -8,8 +8,11 @@ use tauri::{
 
 use tanoshi::{
   config::{self, GLOBAL_CONFIG},
-  db, local, notifier, schema, server, worker,
+  db, local, notifier,
+  proxy::Proxy,
+  schema, server, worker,
 };
+use tanoshi_tracker::{AniList, MyAnimeList};
 
 pub struct Server {
   port: u16,
@@ -93,9 +96,35 @@ impl<R: Runtime> Plugin<R> for Server {
         notifier.clone(),
       );
 
-      let schema = schema::build(userdb, mangadb, extension_manager, download_tx, notifier);
+      let mal_client = config
+        .base_url
+        .clone()
+        .zip(config.myanimelist.clone())
+        .and_then(|(base_url, mal_cfg)| {
+          MyAnimeList::new(&base_url, mal_cfg.client_id.clone(), mal_cfg.client_secret).ok()
+        });
 
-      let app = server::init_app(config, schema);
+      let al_client = config
+        .base_url
+        .clone()
+        .zip(config.anilist.clone())
+        .and_then(|(base_url, al_cfg)| {
+          AniList::new(&base_url, al_cfg.client_id.clone(), al_cfg.client_secret).ok()
+        });
+
+      let schema = schema::build(
+        userdb.clone(),
+        mangadb,
+        extension_manager,
+        download_tx,
+        notifier,
+        mal_client,
+        al_client,
+      );
+
+      let proxy = Proxy::new(config.secret.clone());
+
+      let app = server::init_app(config.enable_playground, schema, proxy);
       let server_fut = server::serve("127.0.0.1", port, app);
 
       tokio::select! {

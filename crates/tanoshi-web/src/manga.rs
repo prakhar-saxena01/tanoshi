@@ -1,4 +1,10 @@
-use crate::{common::{ChapterSettings, ChapterSort, Filter, Modal, Order, Route, Sort, Spinner, snackbar}, query, utils::{AsyncLoader, proxied_image_url, window}};
+use crate::{
+    common::{
+        ChapterSettings, ChapterSort, Filter,  Order, Route, Sort, Spinner, snackbar, SelectCategoryModal, SelectTrackMangaModal, TrackerStatus
+    }, 
+    query, 
+    utils::{AsyncLoader, proxied_image_url, window}
+};
 use chrono::NaiveDateTime;
 use dominator::{Dom, EventOptions, clone, events, html, routing, svg, with_node};
 use futures_signals::{signal::{self, Mutable, SignalExt}, signal_vec::{MutableVec, SignalVecExt}};
@@ -11,126 +17,6 @@ struct ReadProgress {
     pub at: NaiveDateTime,
     pub last_page: i64,
     pub is_complete: bool,
-}
-
-#[derive(Clone)]
-struct Category {
-    id: Option<i64>,
-    name: String,
-    selected: Mutable<bool>
-}
-
-struct SelectCategoryModal {
-    categories: MutableVec<Category>,
-    modal: Rc<Modal>,
-    loader: AsyncLoader,
-}
-
-impl SelectCategoryModal {
-    pub fn new() -> Rc<Self> {
-        Rc::new(Self {
-            categories: MutableVec::new(),
-            modal: Modal::new(),
-            loader: AsyncLoader::new(),
-        })
-    }
-
-    pub fn fetch_categories<F>(self: &Rc<Self>, f: F) where F: Fn(Vec<i64>) + Clone + 'static {
-        let select = self.clone();
-        self.loader.load(clone!(select => async move {
-            match query::fetch_categories().await {
-                Ok(res) => {
-                    if res.len() == 1 {
-                        f(vec![]);
-                        return;
-                    }
-                    
-                    select.modal.show();
-                    select.categories.lock_mut().replace_cloned(res.into_iter().filter_map(|c| (c.id.is_some()).then(|| Category{
-                        id: c.id,
-                        name: c.name.clone(),
-                        selected: Mutable::new(false),
-                    })).collect());
-                }
-                Err(e) => {
-                    snackbar::show(format!("failed to fetch categories {}", e));
-                }
-            }
-        }));
-    }
-
-    pub fn render_header<F>(self: &Rc<Self>, f: F) -> Dom where F: Fn(Vec<i64>) + Clone + 'static {
-        let select = self.clone();
-        html!("div", {
-            .style("display", "flex")
-            .style("justify-content", "space-between")
-            .style("margin-bottom", "0.5rem")
-            .children(&mut [
-                html!("span", {
-                    .style("font-size", "large")
-                    .text("Select Categories")
-                }),
-                html!("button", {
-                    .text("OK")
-                    .event(clone!(select, f => move |_: events::Click| {
-                        let category_ids = select.categories.lock_ref().iter().filter_map(|cat| if cat.selected.get() { cat.id } else { None }).collect();
-                        f(category_ids);
-                        select.modal.hide();
-                    }))
-                })
-            ])
-        })
-    }
-
-    pub fn render_main(self: &Rc<Self>) -> Dom {
-        let select = self.clone();
-        html!("ul", {
-            .class("list")
-            .children_signal_vec(select.categories.signal_vec_cloned().map(|cat| html!{"li", {
-                .class("list-item")
-                .style("padding", "0.5rem")
-                .children(&mut [
-                    html!("input" => HtmlInputElement, {
-                        .attribute("type", "checkbox")
-                        .style("height", "0.75rem")
-                        .style("width", "0.75rem")
-                        .style("margin-left", "0.5rem")
-                        .style("margin-right", "0.5rem")
-                        .style("margin-top", "auto")
-                        .style("margin-bottom", "auto")
-                        .with_node!(input => {
-                            .future(cat.selected.signal().for_each(clone!(input => move |selected| {
-                                input.set_checked(selected);
-
-                                async{}
-                            })))
-                            .event(clone!(cat => move |_: events::Change| {
-                                cat.selected.set_neq(input.checked());
-                            }))
-                        })
-                    }),
-                    html!("span", {
-                        .style("margin-left", "0.5rem")
-                        .text(&cat.name)
-                    })
-                ])
-                .event(clone!(cat => move |_: events::Click| {
-                    cat.selected.set_neq(!cat.selected.get());
-                }))
-            }}))
-        })
-    }
-
-    pub fn render<F>(self: &Rc<Self>, f: F) -> Dom where F: Fn(Vec<i64>) + Clone + 'static {
-        self.fetch_categories(f.clone());
-        let select = self.clone();
-        Modal::render(self.modal.clone(), html!("div", {
-            .children(&mut [
-                select.render_header(f),
-                select.render_main(),
-            ])
-        }))
-    }
 }
 
 #[derive(Clone)]
@@ -160,6 +46,13 @@ impl Default for Chapter {
     }
 }
 
+#[derive(Debug, Clone)]
+enum SelectState {
+    None,
+    Category,
+    Tracker
+}
+
 pub struct Manga {
     pub id: Mutable<i64>,
     pub source_id: Mutable<i64>,
@@ -176,8 +69,11 @@ pub struct Manga {
     next_chapter: Mutable<Option<Chapter>>,
     chapters: MutableVec<Rc<Chapter>>,
     is_edit_chapter: Mutable<bool>,
+    is_tracker_available: Mutable<bool>,
+    num_tracked: Mutable<i64>,
+    trackers: MutableVec<TrackerStatus>,
     chapter_settings: Rc<ChapterSettings>,
-    is_select_category: Mutable<bool>,
+    select_state: Mutable<SelectState>,
     loader: AsyncLoader,
 }
 
@@ -199,8 +95,11 @@ impl Manga {
             next_chapter: Mutable::new(None),
             chapters: MutableVec::new(),
             is_edit_chapter: Mutable::new(false),
+            is_tracker_available: Mutable::new(false),
+            num_tracked: Mutable::new(0),
+            trackers: MutableVec::new(),
             chapter_settings: ChapterSettings::new(false, true),
-            is_select_category: Mutable::new(false),
+            select_state: Mutable::new(SelectState::None),
             loader: AsyncLoader::new(),
         })
     }
@@ -227,6 +126,13 @@ impl Manga {
                         }),
                         ..Default::default()
                     }));
+                    manga.is_tracker_available.set(!result.trackers.is_empty());
+                    manga.num_tracked.set(result.trackers.iter().map(|tracker| if tracker.tracker_manga_id.is_some() { 1 } else { 0 }).sum());
+                    manga.trackers.lock_mut().replace_cloned(result.trackers.iter().map(|t| TrackerStatus{
+                        tracker: t.tracker.clone(), 
+                        tracker_manga_id: Mutable::new(t.tracker_manga_id.clone()),
+                        ..Default::default()
+                    }).collect());
                     manga.chapters.lock_mut().replace_cloned(result.chapters.iter().map(|chapter| Rc::new(Chapter{
                         id: chapter.id,
                         title: chapter.title.clone(),
@@ -274,6 +180,13 @@ impl Manga {
                         }),
                         ..Default::default()
                     }));
+                    manga.is_tracker_available.set(!result.trackers.is_empty());
+                    manga.num_tracked.set(result.trackers.iter().map(|tracker| if tracker.tracker_manga_id.is_some() { 1 } else { 0 }).sum());
+                    manga.trackers.lock_mut().replace_cloned(result.trackers.iter().map(|t| TrackerStatus{
+                        tracker: t.tracker.clone(), 
+                        tracker_manga_id: Mutable::new(t.tracker_manga_id.clone()),
+                        ..Default::default()
+                    }).collect());
                     manga.chapters.lock_mut().replace_cloned(result.chapters.iter().map(|chapter| Rc::new(Chapter{
                         id: chapter.id,
                         title: chapter.title.clone(),
@@ -682,7 +595,7 @@ impl Manga {
                             .attribute("xmlns", "http://www.w3.org/2000/svg")
                             .attribute("fill", "currentColor")
                             .attribute("viewBox", "0 0 20 20")
-                            .class("icon")
+                            .class("icon-sm")
                             .children(&mut [
                                 svg!("path", {
                                     .attribute("fill-rule", "evenodd")
@@ -698,7 +611,7 @@ impl Manga {
                     ])
                     .event(clone!(manga => move |_: events::Click| {
                         if !manga.is_favorite.get() {
-                            manga.is_select_category.set(true);
+                            manga.select_state.set(SelectState::Category);
                         } else {
                             Self::remove_from_library(manga.clone());
                         }
@@ -718,7 +631,7 @@ impl Manga {
                         .attribute("xmlns", "http://www.w3.org/2000/svg")
                         .attribute("fill", "currentColor")
                         .attribute("viewBox", "0 0 20 20")
-                        .class("icon")
+                        .class("icon-sm")
                         .children(&mut [
                             svg!("path", {
                                 .attribute("d", "M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z")
@@ -734,6 +647,41 @@ impl Manga {
                     routing::go_to_url(Route::Chapter(chapter.id, chapter.read_progress.as_ref().map(|progress| progress.last_page).unwrap_or(0)).url().as_str());
                 }))
             }))))
+            .child_signal(manga.is_tracker_available.signal_cloned().map(clone!(manga => move |is_tracker_available| is_tracker_available.then(|| 
+                html!("button", {
+                    .class("action-button")
+                    .style("display", "flex")
+                    .style("padding", "0.5rem")
+                    .style("margin-left", "0.5rem")
+                    .style("margin-top", "0.5rem")
+                    .style("margin-bottom", "0.5rem")
+                    .style("align-items", "center")
+                    .children(&mut [
+                        svg!("svg", {
+                            .attribute("xmlns", "http://www.w3.org/2000/svg")
+                            .attribute("fill", "currentColor")
+                            .attribute("viewBox", "0 0 20 20")
+                            .class("icon-sm")
+                            .children(&mut [
+                                svg!("path", {
+                                    .attribute("d", "M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z")
+                                })
+                            ])
+                        }),
+                        html!("span", {
+                            .style("margin-left", "0.5rem")
+                            .text_signal(manga.num_tracked.signal_cloned().map(|num_tracked| if num_tracked > 0 {
+                                format!("{num_tracked} Tracked")
+                            } else {
+                                "Track".to_string()
+                            }))
+                        })
+                    ])
+                    .event(clone!(manga => move |_: events::Click| {
+                        manga.select_state.set(SelectState::Tracker);
+                    }))
+                })
+            ))))
         })
     }
 
@@ -1015,10 +963,22 @@ impl Manga {
                 }),
                 ChapterSettings::render(manga_page.chapter_settings.clone()),
             ])
-            .child_signal(manga_page.is_select_category.signal().map(clone!(manga_page => move |is_select_category| {
-                is_select_category.then(|| SelectCategoryModal::new().render(clone!(manga_page => move |category_ids: Vec<i64>| {
-                    Self::add_to_library(manga_page.clone(), category_ids);
-                })))
+            .child_signal(manga_page.select_state.signal_cloned().map(clone!(manga_page => move |select_state| {
+                match select_state {
+                    SelectState::Tracker => {
+                        Some(SelectTrackMangaModal::new(manga_page.id.get(), manga_page.title.get_cloned().unwrap()).render(clone!(manga_page => move || {
+                            Self::fetch_detail(manga_page.clone(), false);
+                            manga_page.select_state.set(SelectState::None);                          
+                        })))
+                    }
+                    SelectState::Category => {
+                        Some(SelectCategoryModal::new().render(clone!(manga_page => move |category_ids: Vec<i64>| {
+                            Self::add_to_library(manga_page.clone(), category_ids);
+                            manga_page.select_state.set(SelectState::None);    
+                        })))
+                    }
+                    _ => None
+                }
             })))
             .child_signal(manga_page.is_edit_chapter.signal().map(clone!(manga_page => move |is_edit| if is_edit {
                 Some(html!("div",{
